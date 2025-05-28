@@ -1,24 +1,34 @@
 import type { RenderProps } from "@anywidget/types";
 import "./widget.css";
+import buttonTemplate from "./widget.html";
 
-/* Specifies attributes defined with traitlets in ../src/aligned_widgets/__init__.py */
 interface WidgetModel {
-	value: number;
-	/* Add your own */
+  value: number;
 }
 
 function render({ model, el }: RenderProps<WidgetModel>) {
-	let btn = document.createElement("button");
-	btn.innerHTML = `count is ${model.get("value")}`;
-	btn.addEventListener("click", () => {
-		model.set("value", model.get("value") + 1);
-		model.save_changes();
-	});
-	model.on("change:value", () => {
-		btn.innerHTML = `count is ${model.get("value")}`;
-	});
-	el.classList.add("aligned_widgets");
-	el.appendChild(btn);
+  // Use the imported HTML template
+  el.innerHTML = buttonTemplate;
+
+  // Find elements in the template
+  const btn = el.querySelector("button") as HTMLButtonElement;
+  const valueSpan = el.querySelector(".value") as HTMLSpanElement;
+
+  // Initialize
+  if (valueSpan) valueSpan.textContent = model.get("value").toString();
+
+  if (btn) {
+    btn.addEventListener("click", () => {
+      model.set("value", model.get("value") + 2);
+      model.save_changes();
+    });
+  }
+
+  model.on("change:value", () => {
+    if (valueSpan) valueSpan.textContent = model.get("value").toString();
+  });
+
+  el.classList.add("aligned_widgets");
 }
 
 export default { render };

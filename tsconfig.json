@@ -1,6 +1,7 @@
 {
 	"include": [
-		"js"
+		"js",
+		"types.d.ts"
 	],
 	"compilerOptions": {
 		"target": "ES2020",

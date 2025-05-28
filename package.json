@@ -1,7 +1,8 @@
 {
+	"type": "module",
 	"scripts": {
-		"dev": "npm run build -- --sourcemap=inline --watch",
-		"build": "esbuild js/widget.ts --minify --format=esm --bundle --outdir=src/aligned_widgets/static",
+		"dev": "node esbuild.config.js --dev --watch",
+		"build": "node esbuild.config.js",
 		"typecheck": "tsc --noEmit"
 	},
 	"dependencies": {},
