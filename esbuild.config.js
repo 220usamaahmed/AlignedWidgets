@@ -4,7 +4,7 @@ const isWatch = process.argv.includes("--watch");
 const isDev = process.argv.includes("--dev");
 
 const config = {
-  entryPoints: ["js/widget.ts"],
+  entryPoints: ["frontend/widget.ts", "frontend/control_widget.ts"],
   bundle: true,
   minify: !isDev,
   format: "esm",

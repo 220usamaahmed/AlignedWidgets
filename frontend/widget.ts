@@ -1,6 +1,6 @@
 import type { RenderProps } from "@anywidget/types";
-import "./widget.css";
-import buttonTemplate from "./widget.html";
+import "./styles/widget.css";
+import buttonTemplate from "./templates/widget.html";
 
 interface WidgetModel {
   value: number;
