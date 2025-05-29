@@ -6,12 +6,13 @@ import controlTemplate from "./templates/control_widget.html";
 interface ControlWidgetModel {
   is_running: boolean;
   duration: number;
-  current_time: number;
+  sync_time: number;
 }
 
 class ControlWidget {
   el: HTMLElement;
   model: AnyModel<ControlWidgetModel>;
+  currentTime: number;
   lastAnimationFrameTimestamp: DOMHighResTimeStamp | null = null;
   animationFrameRequestId: number | null = null;
   btnTogglePlay: HTMLButtonElement;
@@ -25,10 +26,12 @@ class ControlWidget {
     this.model = model;
     this.el = el;
 
+    this.currentTime = this.model.get("sync_time");
+
     this.step = this.step.bind(this);
     this.btnTogglePlayClicked = this.btnTogglePlayClicked.bind(this);
     this.inputRangeProgressChanged = this.inputRangeProgressChanged.bind(this);
-    this.durationUpdated = this.durationUpdated.bind(this);
+    this.syncTime = this.syncTime.bind(this);
 
     this.el.innerHTML = controlTemplate;
     this.btnTogglePlay = el.querySelector("#btn-toggle-play")!;
@@ -49,13 +52,23 @@ class ControlWidget {
 
   inputRangeProgressChanged(event: Event) {
     const value = +(event.target as HTMLInputElement).value;
-    const time = value * this.model.get("duration");
-    this.model.set("current_time", time);
+    this.currentTime = value * this.model.get("duration");
+    this.model.set("sync_time", this.currentTime);
     this.model.save_changes();
   }
 
   btnTogglePlayClicked() {
+    console.log(
+      "btn clicked",
+      this.currentTime,
+      this.model.get("sync_time"),
+      this
+    );
+
+    const currentTime = this.currentTime;
     const is_running = this.model.get("is_running");
+
+    this.model.set("sync_time", currentTime);
     this.model.set("is_running", !is_running);
     this.model.save_changes();
 
@@ -86,27 +99,29 @@ class ControlWidget {
     this.lastAnimationFrameTimestamp = timestamp;
 
     if (this.model.get("is_running")) {
-      const currentTime = this.model.get("current_time");
       const duration = this.model.get("duration");
-      const updatedTime = Math.min(currentTime + delta / 1000, duration);
-      this.model.set("current_time", updatedTime);
-      this.inputRangeProgress.value = (updatedTime / duration).toFixed(2);
-
-      this.model.save_changes();
+      this.currentTime = Math.min(this.currentTime + delta / 1000, duration);
+      this.inputRangeProgress.value = (this.currentTime / duration).toFixed(2);
     }
 
     this.animationFrameRequestId = requestAnimationFrame(this.step);
   }
 
-  durationUpdated() {
-    this.spanCurrentTime.innerHTML = this.formatTime(
-      this.model.get("current_time")
-    );
+  syncTime() {
+    this.currentTime = this.model.get("sync_time");
+    console.log("here syncing time", this.currentTime);
+
+    this.inputRangeProgress.value = (
+      this.currentTime / this.model.get("duration")
+    ).toFixed(2);
+
+    this.spanCurrentTime.innerHTML = this.formatTime(this.currentTime);
     this.spanTotalTime.innerHTML = this.formatTime(this.model.get("duration"));
   }
 
   render() {
-    this.model.on("change:current_time", this.durationUpdated);
+    // this.model.on("change:sync_time", this.syncTime);
+    this.model.on("change:is_running", this.syncTime);
 
     this.animationFrameRequestId = requestAnimationFrame(this.step);
   }
