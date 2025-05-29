@@ -31,7 +31,6 @@ class ControlWidget {
     this.step = this.step.bind(this);
     this.btnTogglePlayClicked = this.btnTogglePlayClicked.bind(this);
     this.inputRangeProgressChanged = this.inputRangeProgressChanged.bind(this);
-    this.syncTime = this.syncTime.bind(this);
 
     this.el.innerHTML = controlTemplate;
     this.btnTogglePlay = el.querySelector("#btn-toggle-play")!;
@@ -60,21 +59,9 @@ class ControlWidget {
   }
 
   btnTogglePlayClicked() {
-    console.log(
-      "btn clicked",
-      this.currentTime,
-      this.model.get("sync_time"),
-      this
-    );
-
-    const currentTime = this.currentTime;
-    const is_running = this.model.get("is_running");
-
-    this.model.set("sync_time", currentTime);
-    this.model.set("is_running", !is_running);
+    this.model.set("sync_time", this.currentTime);
+    this.model.set("is_running", !this.model.get("is_running"));
     this.model.save_changes();
-
-    this.btnTogglePlay.innerHTML = !is_running ? "Pause" : "Play";
   }
 
   btnRewindClicked() {}
@@ -110,18 +97,22 @@ class ControlWidget {
     this.animationFrameRequestId = requestAnimationFrame(this.step);
   }
 
-  syncTime() {
+  syncTimeChanged() {
     this.currentTime = this.model.get("sync_time");
-    console.log("here syncing time", this.currentTime);
-
     this.inputRangeProgress.value = (
       this.currentTime / this.model.get("duration")
     ).toFixed(2);
   }
 
+  isRunningChanged() {
+    this.btnTogglePlay.innerHTML = !this.model.get("is_running")
+      ? "Pause"
+      : "Play";
+  }
+
   render() {
-    this.model.on("change:sync_time", this.syncTime);
-    this.model.on("change:is_running", this.syncTime);
+    this.model.on("change:sync_time", this.syncTimeChanged.bind(this));
+    this.model.on("change:is_running", this.isRunningChanged.bind(this));
 
     this.animationFrameRequestId = requestAnimationFrame(this.step);
   }
