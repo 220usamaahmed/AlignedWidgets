@@ -48,6 +48,8 @@ class ControlWidget {
       "change",
       this.inputRangeProgressChanged
     );
+
+    this.spanTotalTime.innerHTML = this.formatTime(this.model.get("duration"));
   }
 
   inputRangeProgressChanged(event: Event) {
@@ -102,6 +104,7 @@ class ControlWidget {
       const duration = this.model.get("duration");
       this.currentTime = Math.min(this.currentTime + delta / 1000, duration);
       this.inputRangeProgress.value = (this.currentTime / duration).toFixed(2);
+      this.spanCurrentTime.innerHTML = this.formatTime(this.currentTime);
     }
 
     this.animationFrameRequestId = requestAnimationFrame(this.step);
@@ -114,13 +117,10 @@ class ControlWidget {
     this.inputRangeProgress.value = (
       this.currentTime / this.model.get("duration")
     ).toFixed(2);
-
-    this.spanCurrentTime.innerHTML = this.formatTime(this.currentTime);
-    this.spanTotalTime.innerHTML = this.formatTime(this.model.get("duration"));
   }
 
   render() {
-    // this.model.on("change:sync_time", this.syncTime);
+    this.model.on("change:sync_time", this.syncTime);
     this.model.on("change:is_running", this.syncTime);
 
     this.animationFrameRequestId = requestAnimationFrame(this.step);
