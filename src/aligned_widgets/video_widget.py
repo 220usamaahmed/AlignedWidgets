@@ -1,13 +1,9 @@
 import pathlib
-from threading import Thread
 
 import anywidget
 import traitlets
-from flask import Flask, send_from_directory
 
-
-app = Flask(__name__)
-server_running = False
+from file_server import FileServer
 
 
 class VideoWidget(anywidget.AnyWidget):
@@ -29,26 +25,4 @@ class VideoWidget(anywidget.AnyWidget):
         if path.suffix.lower() != ".mp4":
             raise ValueError(f"Video file '{video_path}' is not an mp4 file.")
 
-        self._start_server(path)
-
-    def _start_server(self, video_path: pathlib.Path):
-        global server_running
-
-        if server_running:
-            return
-        server_running = True
-
-        video_dir = video_path.parent
-        video_filename = video_path.name
-
-        @app.route("/video")
-        def serve_video():
-            return send_from_directory(video_dir, video_filename)
-
-        def run():
-            app.run(port=8123, threaded=True)
-
-        thread = Thread(target=run, daemon=True)
-        thread.start()
-
-        self.video_url = "http://localhost:8123/video"
+        self.video_url = FileServer().get_file_url(path)
