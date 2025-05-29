@@ -24,9 +24,31 @@ class VideoWidget {
     this.video = el.querySelector("#video")!;
     this.source = el.querySelector("#mp4-source")!;
     this.source.src = this.model.get("video_url");
+
+    this.video.addEventListener("seeked", this.seeked.bind(this));
+    this.video.addEventListener("play", this.played.bind(this));
+    this.video.addEventListener("pause", this.paused.bind(this));
+  }
+
+  played() {
+    this.model.set("is_running", true);
+    this.model.set("sync_time", this.video.currentTime);
+    this.model.save_changes();
+  }
+
+  paused() {
+    this.model.set("is_running", false);
+    this.model.set("sync_time", this.video.currentTime);
+    this.model.save_changes();
+  }
+
+  seeked() {
+    this.model.set("sync_time", this.video.currentTime);
+    this.model.save_changes();
   }
 
   syncTimeChanged() {
+    console.log("syncTimeChanged", this.model.get("sync_time"));
     this.video.currentTime = this.model.get("sync_time");
   }
 
