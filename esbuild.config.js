@@ -1,10 +1,12 @@
 import { build, context } from "esbuild";
+import { cp } from "fs/promises";
+import { join } from "path";
 
 const isWatch = process.argv.includes("--watch");
 const isDev = process.argv.includes("--dev");
 
 const config = {
-  entryPoints: ["js/widget.ts"],
+  entryPoints: ["frontend/widget.ts", "frontend/control_widget.ts"],
   bundle: true,
   minify: !isDev,
   format: "esm",
@@ -16,6 +18,9 @@ const config = {
   target: "es2020",
   sourcemap: isDev ? "inline" : false,
 };
+
+const staticSrc = "frontend/static";
+const staticDest = "src/aligned_widgets/static";
 
 async function runBuild() {
   try {
@@ -31,6 +36,7 @@ async function runBuild() {
       });
     } else {
       await build(config);
+      await cp(staticSrc, staticDest, { recursive: true });
       console.log("✅ Build completed successfully");
     }
   } catch (error) {

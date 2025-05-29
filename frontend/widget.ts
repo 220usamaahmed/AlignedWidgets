@@ -1,6 +1,6 @@
 import type { RenderProps } from "@anywidget/types";
-import "./widget.css";
-import buttonTemplate from "./widget.html";
+import "./styles/widget.css";
+import buttonTemplate from "./templates/widget.html";
 
 interface WidgetModel {
   value: number;
@@ -19,7 +19,7 @@ function render({ model, el }: RenderProps<WidgetModel>) {
 
   if (btn) {
     btn.addEventListener("click", () => {
-      model.set("value", model.get("value") + 2);
+      model.set("value", model.get("value") + 1);
       model.save_changes();
     });
   }
