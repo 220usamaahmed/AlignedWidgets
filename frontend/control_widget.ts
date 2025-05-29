@@ -20,8 +20,6 @@ class ControlWidget {
   lastAnimationFrameTimestamp: DOMHighResTimeStamp | null = null;
   animationFrameRequestId: number | null = null;
   btnTogglePlay: HTMLButtonElement;
-  btnRewind: HTMLButtonElement;
-  btnForward: HTMLButtonElement;
   inputRangeProgress: HTMLInputElement;
   spanCurrentTime: HTMLSpanElement;
   spanTotalTime: HTMLSpanElement;
