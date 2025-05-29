@@ -7,6 +7,10 @@ interface ControlWidgetModel {
   is_running: boolean;
   duration: number;
   sync_time: number;
+  icons: {
+    play: string;
+    pause: string;
+  };
 }
 
 class ControlWidget {
@@ -33,16 +37,15 @@ class ControlWidget {
     this.inputRangeProgressChanged = this.inputRangeProgressChanged.bind(this);
 
     this.el.innerHTML = controlTemplate;
+
     this.btnTogglePlay = el.querySelector("#btn-toggle-play")!;
-    this.btnRewind = el.querySelector("#btn-rewind")!;
-    this.btnForward = el.querySelector("#btn-forward")!;
+    this.btnTogglePlay.innerHTML = this.model.get("icons").play;
+
     this.inputRangeProgress = el.querySelector("#input-range-progress")!;
     this.spanCurrentTime = el.querySelector("#span-current-time")!;
     this.spanTotalTime = el.querySelector("#span-total-time")!;
 
     this.btnTogglePlay.addEventListener("click", this.btnTogglePlayClicked);
-    this.btnRewind.addEventListener("click", this.btnRewindClicked);
-    this.btnForward.addEventListener("click", this.btnForwardClicked);
     this.inputRangeProgress.addEventListener(
       "change",
       this.inputRangeProgressChanged
@@ -63,10 +66,6 @@ class ControlWidget {
     this.model.set("is_running", !this.model.get("is_running"));
     this.model.save_changes();
   }
-
-  btnRewindClicked() {}
-
-  btnForwardClicked() {}
 
   formatTime(seconds: number): string {
     const hrs = Math.floor(seconds / 3600);
@@ -106,8 +105,8 @@ class ControlWidget {
 
   isRunningChanged() {
     this.btnTogglePlay.innerHTML = !this.model.get("is_running")
-      ? "Pause"
-      : "Play";
+      ? this.model.get("icons").play
+      : this.model.get("icons").pause;
   }
 
   render() {

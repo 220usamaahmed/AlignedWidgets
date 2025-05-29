@@ -8,10 +8,27 @@
   flex-direction: row;
 }
 
-.control-widget .control-buttons {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
+.control-widget .control-buttons button {
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+  border: 0px;
+  background-color: #eceff1;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.control-widget .control-buttons button:hover {
+  background-color: #cfd8dc;
+}
+
+.control-widget .control-buttons button svg {
+  fill: #263238;
+  outline: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
 }
 
 .control-widget .progress-slider {
@@ -36,4 +53,13 @@
 
 .time-display span {
   font-family: monospace;
+}
+
+.time-display .time {
+  color: #263238;
+}
+
+.time-display .seperator {
+  color: #607d8b;
+  margin: 0 8px;
 }

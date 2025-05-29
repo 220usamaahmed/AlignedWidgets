@@ -1,4 +1,6 @@
 import { build, context } from "esbuild";
+import { cp } from "fs/promises";
+import { join } from "path";
 
 const isWatch = process.argv.includes("--watch");
 const isDev = process.argv.includes("--dev");
@@ -17,6 +19,9 @@ const config = {
   sourcemap: isDev ? "inline" : false,
 };
 
+const staticSrc = "frontend/static";
+const staticDest = "src/aligned_widgets/static";
+
 async function runBuild() {
   try {
     if (isWatch) {
@@ -31,6 +36,7 @@ async function runBuild() {
       });
     } else {
       await build(config);
+      await cp(staticSrc, staticDest, { recursive: true });
       console.log("✅ Build completed successfully");
     }
   } catch (error) {
