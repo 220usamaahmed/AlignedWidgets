@@ -19,7 +19,7 @@ function render({ model, el }: RenderProps<WidgetModel>) {
 
   if (btn) {
     btn.addEventListener("click", () => {
-      model.set("value", model.get("value") + 2);
+      model.set("value", model.get("value") + 1);
       model.save_changes();
     });
   }
