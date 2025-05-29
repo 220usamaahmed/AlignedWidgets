@@ -13,6 +13,7 @@ class VideoWidget {
   el: HTMLElement;
   model: AnyModel<VideoWidgetModel>;
 
+  video: HTMLVideoElement;
   source: HTMLSourceElement;
 
   constructor({ model, el }: RenderProps<VideoWidgetModel>) {
@@ -20,13 +21,19 @@ class VideoWidget {
     this.el = el;
 
     this.el.innerHTML = controlTemplate;
+    this.video = el.querySelector("#video")!;
     this.source = el.querySelector("#mp4-source")!;
     this.source.src = this.model.get("video_url");
   }
 
-  syncTimeChanged() {}
+  syncTimeChanged() {
+    this.video.currentTime = this.model.get("sync_time");
+  }
 
-  isRunningChanged() {}
+  isRunningChanged() {
+    if (this.model.get("is_running")) this.video.play();
+    else this.video.pause();
+  }
 
   render() {
     this.model.on("change:sync_time", this.syncTimeChanged.bind(this));
