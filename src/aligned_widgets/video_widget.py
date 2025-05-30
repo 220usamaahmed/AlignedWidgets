@@ -3,7 +3,7 @@ import pathlib
 import anywidget
 import traitlets
 
-from file_server import FileServer
+from aligned_widgets.file_server import FileServer
 
 
 class VideoWidget(anywidget.AnyWidget):

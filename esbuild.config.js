@@ -6,11 +6,7 @@ const isWatch = process.argv.includes("--watch");
 const isDev = process.argv.includes("--dev");
 
 const config = {
-  entryPoints: [
-    "frontend/widget.ts",
-    "frontend/control_widget.ts",
-    "frontend/video_widget.ts",
-  ],
+  entryPoints: ["frontend/control_widget.ts", "frontend/video_widget.ts"],
   bundle: true,
   minify: !isDev,
   format: "esm",
