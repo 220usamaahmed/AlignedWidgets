@@ -18,3 +18,17 @@
 
 .header .legend {
 }
+
+.timeseries-widget .graph {
+  width: 100%;
+  height: 200px;
+
+  background-color: white;
+}
+
+.timeseries-widget .graph canvas {
+  width: 100%;
+  height: 200px;
+  border-radius: 4px;
+  background-color: white;
+}

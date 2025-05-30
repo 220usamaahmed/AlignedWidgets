@@ -14,16 +14,24 @@ class TimeseriesWidget {
   el: HTMLElement;
   model: AnyModel<TimerseriesWidgetModel>;
 
+  canvas: HTMLCanvasElement;
+
   currentTime: number;
   lastAnimationFrameTimestamp: DOMHighResTimeStamp | null = null;
   animationFrameRequestId: number | null = null;
 
   times: Float64Array;
   values: Float64Array[] = [];
+  numChannels: number;
+
+  window_size_in_s = 5;
 
   constructor({ model, el }: RenderProps<TimerseriesWidgetModel>) {
     this.model = model;
     this.el = el;
+    el.innerHTML = timeseriesTemplate;
+
+    this.canvas = el.querySelector("#canvas")!;
 
     this.currentTime = this.model.get("sync_time");
 
@@ -37,9 +45,9 @@ class TimeseriesWidget {
 
     const num_elements = this.times.length;
     const total_values_count = all_values.length;
-    const num_channels = total_values_count / num_elements;
+    this.numChannels = total_values_count / num_elements;
 
-    for (let i = 0; i < num_channels; i++) {
+    for (let i = 0; i < this.numChannels; i++) {
       this.values.push(
         all_values.slice(i * num_elements, i * num_elements + num_elements)
       );
@@ -47,10 +55,150 @@ class TimeseriesWidget {
   }
 
   step(timestamp: DOMHighResTimeStamp) {
+    if (!this.lastAnimationFrameTimestamp) {
+      const canvasHolder = this.el.querySelector("#canvas-holder")!;
+      this.canvas.width = canvasHolder.clientWidth;
+      this.canvas.height = canvasHolder.clientHeight;
+      this.canvas.style.width = "100%";
+      this.canvas.style.height = "100%";
+
+      this.lastAnimationFrameTimestamp = timestamp;
+    }
+
+    const delta = timestamp - this.lastAnimationFrameTimestamp;
+    this.lastAnimationFrameTimestamp = timestamp;
+
+    if (this.model.get("is_running")) {
+      const duration = this.times[this.times.length - 1];
+      this.currentTime = Math.min(this.currentTime + delta / 1000, duration);
+    }
+
+    this.drawPlots();
+
     this.animationFrameRequestId = requestAnimationFrame(this.step);
   }
 
-  syncTimeChanged() {}
+  drawPlots() {
+    const startTime = this.currentTime - this.window_size_in_s / 2;
+    const endTime = this.currentTime + this.window_size_in_s / 2;
+
+    const startIndex = this.times.findIndex((e) => e > startTime);
+    const endIndexPlus1 = this.times.findIndex((e) => e > endTime);
+
+    const endIndex =
+      endIndexPlus1 != -1
+        ? Math.max(endIndexPlus1 - 1, 0)
+        : this.times.length - 1;
+
+    const firstPointTimeDelta = this.times[startIndex] - this.currentTime;
+    const lastPointTimeDelta = this.times[endIndex] - this.currentTime;
+    const leftOffsetPercentage = Math.max(
+      firstPointTimeDelta / this.window_size_in_s + 0.5,
+      0
+    );
+    const rightOffsetPercentage =
+      lastPointTimeDelta / this.window_size_in_s + 0.5;
+
+    this.drawGraphFrame();
+
+    for (let c = 0; c < this.numChannels; c++) {
+      this.drawPlot(
+        c,
+        startIndex,
+        endIndex,
+        leftOffsetPercentage,
+        rightOffsetPercentage,
+        -1,
+        1
+      );
+    }
+  }
+
+  drawPlot(
+    channelIndex: number,
+    startIndex: number,
+    endIndex: number,
+    leftOffsetPercentage: number,
+    rightOffsetPercentage: number,
+    min: number,
+    max: number
+  ) {
+    if (isNaN(startIndex) || isNaN(endIndex)) return;
+
+    const ctx = this.canvas.getContext("2d");
+    const width = this.canvas.width;
+    const height = this.canvas.height;
+
+    if (!ctx) {
+      console.error("Failed to get 2D context");
+      return;
+    }
+
+    ctx.strokeStyle = "#00ff00";
+    ctx.lineWidth = 2;
+
+    ctx.beginPath();
+
+    const indexRange = endIndex - startIndex;
+    const fullWidthRange = width - 2;
+    const startX = leftOffsetPercentage * fullWidthRange;
+    const endX = rightOffsetPercentage * fullWidthRange;
+    const widthRange = endX - startX;
+    const heightRange = height - 2;
+    const yRange = max - min;
+
+    const values = this.values[channelIndex];
+
+    ctx.moveTo(
+      startX,
+      height - (heightRange * (values[startIndex] - min)) / yRange
+    );
+
+    const max_points_to_display = width;
+    const di =
+      indexRange > max_points_to_display
+        ? Math.floor(indexRange / max_points_to_display)
+        : 1;
+
+    for (let i = startIndex; i <= endIndex; i += di) {
+      const x = ((i - startIndex) / indexRange) * widthRange + startX;
+      const y = height - (heightRange * (values[i] - min)) / yRange;
+      ctx.lineTo(x, y);
+    }
+
+    ctx.stroke();
+  }
+
+  drawGraphFrame() {
+    const ctx = this.canvas.getContext("2d");
+    const width = this.canvas.width;
+    const height = this.canvas.height;
+
+    if (!ctx) {
+      console.error("Failed to get 2D context");
+      return;
+    }
+
+    ctx.clearRect(0, 0, width, height);
+
+    // Drawing X axis
+    ctx.strokeStyle = "#607d8b";
+    ctx.beginPath();
+    ctx.moveTo(0, height / 2);
+    ctx.lineTo(width, height / 2);
+    ctx.stroke();
+
+    // Drawing Y axis
+    ctx.strokeStyle = "#607d8b";
+    ctx.beginPath();
+    ctx.moveTo(width / 2, 0);
+    ctx.lineTo(width / 2, height);
+    ctx.stroke();
+  }
+
+  syncTimeChanged() {
+    this.currentTime = this.model.get("sync_time");
+  }
 
   isRunningChanged() {}
 
