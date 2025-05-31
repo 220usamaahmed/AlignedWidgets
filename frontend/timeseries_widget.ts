@@ -8,6 +8,8 @@ interface TimerseriesWidgetModel {
   sync_time: number;
   times: Float64Array;
   values: Float64Array;
+  channel_names: string[];
+  title: string;
 }
 
 class TimeseriesWidget {
@@ -52,6 +54,43 @@ class TimeseriesWidget {
         all_values.slice(i * num_elements, i * num_elements + num_elements)
       );
     }
+
+    this.addLegend();
+    this.addTitle();
+  }
+
+  addLegend() {
+    const legend = this.el.querySelector("#legend")!;
+
+    for (const channel of this.model.get("channel_names")) {
+      const channelIndex = this.model
+        .get("channel_names")
+        .findIndex((e) => e == channel);
+      const label = document.createElement("span");
+      label.innerHTML = channel;
+      label.style.setProperty("--line-color", this.getColor(channelIndex));
+      legend.append(label);
+    }
+  }
+
+  addTitle() {
+    const title = this.el.querySelector("#title")!;
+    title.innerHTML = this.model.get("title");
+  }
+
+  getColor(channelIndex: number) {
+    const colors = [
+      "#F44336",
+      "#4CAF50",
+      "#2196F3",
+      "#FFEB3B",
+      "#795548",
+      "#673AB7",
+    ];
+
+    const index = channelIndex % colors.length;
+
+    return colors[index];
   }
 
   step(timestamp: DOMHighResTimeStamp) {
@@ -134,7 +173,7 @@ class TimeseriesWidget {
       return;
     }
 
-    ctx.strokeStyle = "#00ff00";
+    ctx.strokeStyle = this.getColor(channelIndex);
     ctx.lineWidth = 2;
 
     ctx.beginPath();
@@ -181,15 +220,13 @@ class TimeseriesWidget {
 
     ctx.clearRect(0, 0, width, height);
 
-    // Drawing X axis
     ctx.strokeStyle = "#607d8b";
+
     ctx.beginPath();
     ctx.moveTo(0, height / 2);
     ctx.lineTo(width, height / 2);
     ctx.stroke();
 
-    // Drawing Y axis
-    ctx.strokeStyle = "#607d8b";
     ctx.beginPath();
     ctx.moveTo(width / 2, 0);
     ctx.lineTo(width / 2, height);
