@@ -7,6 +7,7 @@ type Annotation = {
   start: number;
   end: number;
   tag: string;
+  index?: number;
 };
 
 interface TimerseriesWidgetModel {
@@ -34,7 +35,9 @@ class TimeseriesWidget {
   numChannels: number;
   annotations: Annotation[] = [];
   tags: string[] = [];
+
   window_size_in_s = 5;
+  selectedAnnIndex: number | null = null;
 
   constructor({ model, el }: RenderProps<TimerseriesWidgetModel>) {
     this.model = model;
@@ -42,6 +45,13 @@ class TimeseriesWidget {
     el.innerHTML = timeseriesTemplate;
 
     this.canvas = el.querySelector("#canvas")!;
+    this.canvas.addEventListener("mousedown", this.canvasMouseDown.bind(this));
+    this.canvas.addEventListener("mousemove", this.canvasMouseMove.bind(this));
+    this.canvas.addEventListener("mouseup", this.canvasMouseUp.bind(this));
+    this.canvas.addEventListener(
+      "mouseleave",
+      this.canvasMouseLeave.bind(this)
+    );
 
     this.currentTime = this.model.get("sync_time");
 
@@ -64,16 +74,43 @@ class TimeseriesWidget {
     }
 
     this.annotations = this.model.get("annotations");
+    for (let i = 0; i < this.annotations.length; i++) {
+      this.annotations[i].index = i;
+    }
     this.extractTags();
 
     this.addLegend();
     this.addTitle();
   }
 
+  canvasMouseDown(e: MouseEvent) {
+    this.checkForAnnSelection(e.offsetX);
+  }
+
+  canvasMouseMove(e: MouseEvent) {}
+
+  canvasMouseLeave(e: MouseEvent) {}
+
+  canvasMouseUp(e: MouseEvent) {}
+
+  checkForAnnSelection(mouseX: number) {
+    const startTime = this.currentTime - this.window_size_in_s / 2;
+    const endTime = this.currentTime + this.window_size_in_s / 2;
+
+    const drawnAnns = this.getAnnotationsToDraw(startTime, endTime);
+
+    const annotation = drawnAnns.find(
+      (ann) => ann.start < mouseX && ann.start + ann.width > mouseX
+    );
+
+    this.selectedAnnIndex =
+      annotation == undefined ? null : annotation.index ?? null;
+  }
+
   extractTags() {
-    for (const patch of this.model.get("annotations")) {
-      if (!this.tags.includes(patch.tag)) {
-        this.tags.push(patch.tag);
+    for (const ann of this.model.get("annotations")) {
+      if (!this.tags.includes(ann.tag)) {
+        this.tags.push(ann.tag);
       }
     }
   }
@@ -112,7 +149,7 @@ class TimeseriesWidget {
     return colors[index];
   }
 
-  getPatchColor(tagIndex: number) {
+  getTagColor(tagIndex: number) {
     const colors = [
       "#F44336",
       "#3F51B5",
@@ -247,16 +284,10 @@ class TimeseriesWidget {
     ctx.stroke();
   }
 
-  drawAnnotations(startTime: number, endTime: number) {
-    const ctx = this.canvas.getContext("2d");
-
-    if (!ctx) {
-      console.error("Failed to get 2D context");
-      return;
-    }
+  getAnnotationsToDraw(startTime: number, endTime: number) {
+    let annotationsToDraw = [];
 
     const width = this.canvas.width;
-    const height = this.canvas.height;
 
     const leftOffsetPercentage = 0;
     const rightOffsetPercentage = 1;
@@ -267,45 +298,60 @@ class TimeseriesWidget {
     const widthRange = endX - startX;
     const timeRange = endTime - startTime;
 
-    let patchesToDraw = [];
-
-    for (const patch of this.annotations.filter(
+    for (const ann of this.annotations.filter(
       (p) =>
         (p.start >= startTime && p.start <= endTime) ||
         (p.end >= startTime && p.end <= endTime) ||
         (p.start <= startTime && p.end >= endTime)
     )) {
-      const tagIndex = this.tags.findIndex((e) => e == patch.tag);
+      const tagIndex = this.tags.findIndex((e) => e == ann.tag);
 
       const start =
-        (widthRange * (Math.max(patch["start"], startTime) - startTime)) /
+        (widthRange * (Math.max(ann["start"], startTime) - startTime)) /
         timeRange;
       const end =
-        (widthRange * (Math.min(patch["end"], endTime) - startTime)) /
-        timeRange;
+        (widthRange * (Math.min(ann["end"], endTime) - startTime)) / timeRange;
 
-      patchesToDraw.push({
+      annotationsToDraw.push({
         start: startX + start,
         width: end - start,
-        color: this.getPatchColor(tagIndex),
-        index: tagIndex,
+        color: this.getTagColor(tagIndex),
+        index: ann.index,
+        tagIndex: tagIndex,
       });
     }
 
-    for (const patch of patchesToDraw) {
-      ctx.fillStyle = patch.color + "11";
-      ctx.fillRect(patch.start, 0, patch.width, height);
+    return annotationsToDraw;
+  }
+
+  drawAnnotations(startTime: number, endTime: number) {
+    const ctx = this.canvas.getContext("2d");
+
+    if (!ctx) {
+      console.error("Failed to get 2D context");
+      return;
     }
 
+    const height = this.canvas.height;
     const indicatorPadding = 1;
     const indicatorHeight = 5;
 
-    for (const patch of patchesToDraw) {
-      ctx.fillStyle = patch.color;
+    const annotationsToDraw = this.getAnnotationsToDraw(startTime, endTime);
+
+    for (const ann of annotationsToDraw) {
+      let color = ann.color;
+      if (this.selectedAnnIndex != null) {
+        color = ann.index == this.selectedAnnIndex ? ann.color : "#78909C";
+      }
+
+      ctx.fillStyle = color + "22";
+      ctx.fillRect(ann.start, 0, ann.width, height);
+
+      ctx.fillStyle = color;
       ctx.fillRect(
-        patch.start + indicatorPadding,
-        patch.index * indicatorHeight + indicatorPadding,
-        patch.width - 2 * indicatorPadding,
+        ann.start + indicatorPadding,
+        ann.tagIndex * indicatorHeight + indicatorPadding,
+        ann.width - 2 * indicatorPadding,
         indicatorHeight - indicatorPadding
       );
     }
