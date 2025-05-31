@@ -3,11 +3,18 @@ import "./styles/widget.css";
 import "./styles/timeseries_widget.css";
 import timeseriesTemplate from "./templates/timeseries_widget.html";
 
+type Annotation = {
+  start: number;
+  end: number;
+  tag: string;
+};
+
 interface TimerseriesWidgetModel {
   is_running: boolean;
   sync_time: number;
   times: Float64Array;
   values: Float64Array;
+  annotations: Annotation[];
   channel_names: string[];
   title: string;
 }
@@ -25,7 +32,8 @@ class TimeseriesWidget {
   times: Float64Array;
   values: Float64Array[] = [];
   numChannels: number;
-
+  annotations: Annotation[] = [];
+  tags: string[] = [];
   window_size_in_s = 5;
 
   constructor({ model, el }: RenderProps<TimerseriesWidgetModel>) {
@@ -55,8 +63,19 @@ class TimeseriesWidget {
       );
     }
 
+    this.annotations = this.model.get("annotations");
+    this.extractTags();
+
     this.addLegend();
     this.addTitle();
+  }
+
+  extractTags() {
+    for (const patch of this.model.get("annotations")) {
+      if (!this.tags.includes(patch.tag)) {
+        this.tags.push(patch.tag);
+      }
+    }
   }
 
   addLegend() {
@@ -68,7 +87,7 @@ class TimeseriesWidget {
         .findIndex((e) => e == channel);
       const label = document.createElement("span");
       label.innerHTML = channel;
-      label.style.setProperty("--line-color", this.getColor(channelIndex));
+      label.style.setProperty("--line-color", this.getPlotColor(channelIndex));
       legend.append(label);
     }
   }
@@ -78,7 +97,7 @@ class TimeseriesWidget {
     title.innerHTML = this.model.get("title");
   }
 
-  getColor(channelIndex: number) {
+  getPlotColor(channelIndex: number) {
     const colors = [
       "#F44336",
       "#4CAF50",
@@ -89,6 +108,25 @@ class TimeseriesWidget {
     ];
 
     const index = channelIndex % colors.length;
+
+    return colors[index];
+  }
+
+  getPatchColor(tagIndex: number) {
+    const colors = [
+      "#F44336",
+      "#3F51B5",
+      "#00BCD4",
+      "#9C27B0",
+      "#E91E63",
+      "#CDDC39",
+      "#795548",
+      "#FFEB3B",
+      "#607D8B",
+      "#2196F3",
+    ];
+
+    const index = tagIndex % colors.length;
 
     return colors[index];
   }
@@ -112,12 +150,13 @@ class TimeseriesWidget {
       this.currentTime = Math.min(this.currentTime + delta / 1000, duration);
     }
 
-    this.drawPlots();
+    this.clearFrame();
+    this.draw();
 
     this.animationFrameRequestId = requestAnimationFrame(this.step);
   }
 
-  drawPlots() {
+  draw() {
     const startTime = this.currentTime - this.window_size_in_s / 2;
     const endTime = this.currentTime + this.window_size_in_s / 2;
 
@@ -138,7 +177,7 @@ class TimeseriesWidget {
     const rightOffsetPercentage =
       lastPointTimeDelta / this.window_size_in_s + 0.5;
 
-    this.drawGraphFrame();
+    this.drawAnnotations(startTime, endTime);
 
     for (let c = 0; c < this.numChannels; c++) {
       this.drawPlot(
@@ -173,7 +212,7 @@ class TimeseriesWidget {
       return;
     }
 
-    ctx.strokeStyle = this.getColor(channelIndex);
+    ctx.strokeStyle = this.getPlotColor(channelIndex);
     ctx.lineWidth = 2;
 
     ctx.beginPath();
@@ -208,7 +247,71 @@ class TimeseriesWidget {
     ctx.stroke();
   }
 
-  drawGraphFrame() {
+  drawAnnotations(startTime: number, endTime: number) {
+    const ctx = this.canvas.getContext("2d");
+
+    if (!ctx) {
+      console.error("Failed to get 2D context");
+      return;
+    }
+
+    const width = this.canvas.width;
+    const height = this.canvas.height;
+
+    const leftOffsetPercentage = 0;
+    const rightOffsetPercentage = 1;
+
+    const fullWidthRange = width - 2;
+    const startX = fullWidthRange * leftOffsetPercentage;
+    const endX = fullWidthRange * rightOffsetPercentage;
+    const widthRange = endX - startX;
+    const timeRange = endTime - startTime;
+
+    let patchesToDraw = [];
+
+    for (const patch of this.annotations.filter(
+      (p) =>
+        (p.start >= startTime && p.start <= endTime) ||
+        (p.end >= startTime && p.end <= endTime) ||
+        (p.start <= startTime && p.end >= endTime)
+    )) {
+      const tagIndex = this.tags.findIndex((e) => e == patch.tag);
+
+      const start =
+        (widthRange * (Math.max(patch["start"], startTime) - startTime)) /
+        timeRange;
+      const end =
+        (widthRange * (Math.min(patch["end"], endTime) - startTime)) /
+        timeRange;
+
+      patchesToDraw.push({
+        start: startX + start,
+        width: end - start,
+        color: this.getPatchColor(tagIndex),
+        index: tagIndex,
+      });
+    }
+
+    for (const patch of patchesToDraw) {
+      ctx.fillStyle = patch.color + "11";
+      ctx.fillRect(patch.start, 0, patch.width, height);
+    }
+
+    const indicatorPadding = 1;
+    const indicatorHeight = 5;
+
+    for (const patch of patchesToDraw) {
+      ctx.fillStyle = patch.color;
+      ctx.fillRect(
+        patch.start + indicatorPadding,
+        patch.index * indicatorHeight + indicatorPadding,
+        patch.width - 2 * indicatorPadding,
+        indicatorHeight - indicatorPadding
+      );
+    }
+  }
+
+  clearFrame() {
     const ctx = this.canvas.getContext("2d");
     const width = this.canvas.width;
     const height = this.canvas.height;

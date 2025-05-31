@@ -7,16 +7,23 @@ import traitlets
 import numpy as np
 
 
+class Annotation(_t.TypedDict):
+    start: str
+    end: str
+    tag: str
+
+
 class TimeseriesWidget(anywidget.AnyWidget):
     _root = pathlib.Path(__file__).parent / "static"
 
     _esm = _root / "timeseries_widget.js"
     _css = _root / "timeseries_widget.css"
 
+    title = traitlets.Unicode().tag(sync=True)
     times = traitlets.Bytes(b"").tag(sync=True)
     values = traitlets.Bytes(b"").tag(sync=True)
     channel_names = traitlets.List([]).tag(sync=True)
-    title = traitlets.Unicode().tag(sync=True)
+    annotations = traitlets.List([]).tag(sync=True)
 
     is_running = traitlets.Bool(False).tag(sync=True)
     sync_time = traitlets.Float(0.0).tag(sync=True)
@@ -25,6 +32,7 @@ class TimeseriesWidget(anywidget.AnyWidget):
         self,
         times: np.ndarray,
         values: np.ndarray,
+        annotations: _t.List[Annotation] = [],
         *,
         channel_names: _t.List[str] = [],
         title: str = "",
@@ -44,5 +52,6 @@ class TimeseriesWidget(anywidget.AnyWidget):
 
         self.times = times.tobytes()
         self.values = values.tobytes()
+        self.annotations = annotations
         self.channel_names = channel_names
         self.title = title
