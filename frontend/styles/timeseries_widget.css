@@ -47,3 +47,38 @@
   border-radius: 4px;
   background-color: white;
 }
+
+.timeseries-widget .controls {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 4px;
+}
+
+.controls button {
+  background-color: transparent;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  padding: 4px;
+  width: 32px;
+  height: 32px;
+  box-sizing: border-box;
+}
+
+.controls button:hover {
+  background-color: #cfd8dc;
+}
+
+.controls button:active {
+  background-color: #b0bec5;
+}
+
+.controls button svg {
+  fill: #263238;
+  outline: none;
+  width: 24px;
+  height: 24px;
+  margin: 0;
+}

@@ -23,6 +23,10 @@
   background-color: #cfd8dc;
 }
 
+.control-widget .control-buttons button:active {
+  background-color: #b0bec5;
+}
+
 .control-widget .control-buttons button svg {
   fill: #263238;
   outline: none;

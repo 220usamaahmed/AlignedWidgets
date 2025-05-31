@@ -18,6 +18,12 @@ interface TimerseriesWidgetModel {
   annotations: Annotation[];
   channel_names: string[];
   title: string;
+  icons: {
+    add: string;
+    delete: string;
+    zoom_in: string;
+    zoom_out: string;
+  };
 }
 
 class TimeseriesWidget {
@@ -25,6 +31,10 @@ class TimeseriesWidget {
   model: AnyModel<TimerseriesWidgetModel>;
 
   canvas: HTMLCanvasElement;
+  btnAdd: HTMLButtonElement;
+  btnDelete: HTMLButtonElement;
+  btnZoomIn: HTMLButtonElement;
+  btnZoomOut: HTMLButtonElement;
 
   currentTime: number;
   lastAnimationFrameTimestamp: DOMHighResTimeStamp | null = null;
@@ -52,6 +62,18 @@ class TimeseriesWidget {
       "mouseleave",
       this.canvasMouseLeave.bind(this)
     );
+
+    this.btnAdd = el.querySelector("#btnAdd")!;
+    this.btnAdd.innerHTML = this.model.get("icons").add;
+
+    this.btnDelete = el.querySelector("#btnDelete")!;
+    this.btnDelete.innerHTML = this.model.get("icons").delete;
+
+    this.btnZoomIn = el.querySelector("#btnZoomIn")!;
+    this.btnZoomIn.innerHTML = this.model.get("icons").zoom_in;
+
+    this.btnZoomOut = el.querySelector("#btnZoomOut")!;
+    this.btnZoomOut.innerHTML = this.model.get("icons").zoom_out;
 
     this.currentTime = this.model.get("sync_time");
 
@@ -340,11 +362,13 @@ class TimeseriesWidget {
 
     for (const ann of annotationsToDraw) {
       let color = ann.color;
+      let transparency = "22";
       if (this.selectedAnnIndex != null) {
         color = ann.index == this.selectedAnnIndex ? ann.color : "#78909C";
+        transparency = ann.index == this.selectedAnnIndex ? "44" : "22";
       }
 
-      ctx.fillStyle = color + "22";
+      ctx.fillStyle = color + transparency;
       ctx.fillRect(ann.start, 0, ann.width, height);
 
       ctx.fillStyle = color;

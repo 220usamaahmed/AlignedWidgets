@@ -28,6 +28,15 @@ class TimeseriesWidget(anywidget.AnyWidget):
     is_running = traitlets.Bool(False).tag(sync=True)
     sync_time = traitlets.Float(0.0).tag(sync=True)
 
+    icons = traitlets.Dict(
+        {
+            "add": (_root / "add.svg").read_text(),
+            "delete": (_root / "delete.svg").read_text(),
+            "zoom_in": (_root / "zoom_in.svg").read_text(),
+            "zoom_out": (_root / "zoom_out.svg").read_text(),
+        }
+    ).tag(sync=True)
+
     def __init__(
         self,
         times: np.ndarray,
