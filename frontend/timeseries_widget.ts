@@ -141,12 +141,16 @@ class TimeseriesWidget {
 
     const drawnAnns = this.getAnnotationsToDraw(startTime, endTime);
 
+    console.log(drawnAnns);
+
     this.selectedAnnIndex = null;
     for (let i = 0; i < drawnAnns.length; i++) {
       const ann = drawnAnns[i];
       if (ann.start > mouseX || ann.start + ann.width < mouseX) continue;
-      this.selectedAnnIndex = i;
+      this.selectedAnnIndex = ann.index;
     }
+
+    console.log(this.selectedAnnIndex);
   }
 
   extractTags() {
@@ -388,8 +392,8 @@ class TimeseriesWidget {
       let color = ann.color;
       let transparency = "22";
       if (this.selectedAnnIndex != null) {
-        color = i == this.selectedAnnIndex ? ann.color : "#78909C";
-        transparency = i == this.selectedAnnIndex ? "44" : "22";
+        color = ann.index == this.selectedAnnIndex ? ann.color : "#78909C";
+        transparency = ann.index == this.selectedAnnIndex ? "44" : "22";
       }
 
       ctx.fillStyle = color + transparency;
