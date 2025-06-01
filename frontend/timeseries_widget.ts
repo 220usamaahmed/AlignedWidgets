@@ -65,6 +65,7 @@ class TimeseriesWidget {
 
     this.btnAdd = el.querySelector("#btnAdd")!;
     this.btnAdd.innerHTML = this.model.get("icons").add;
+    this.btnAdd.addEventListener("click", this.btnAddClicked.bind(this));
 
     this.btnDelete = el.querySelector("#btnDelete")!;
     this.btnDelete.innerHTML = this.model.get("icons").delete;
@@ -114,6 +115,19 @@ class TimeseriesWidget {
   canvasMouseLeave(e: MouseEvent) {}
 
   canvasMouseUp(e: MouseEvent) {}
+
+  btnAddClicked() {
+    this.annotations.push({
+      start: this.currentTime,
+      end: this.currentTime + 0.5,
+      tag: this.tags[0], // TODO: Tag hard coded
+      index: this.annotations.length,
+    });
+
+    console.log(this.annotations);
+
+    this.selectedAnnIndex = this.annotations.length - 1;
+  }
 
   checkForAnnSelection(mouseX: number) {
     const startTime = this.currentTime - this.window_size_in_s / 2;
