@@ -7,7 +7,6 @@ type Annotation = {
   start: number;
   end: number;
   tag: string;
-  index?: number;
 };
 
 interface TimerseriesWidgetModel {
@@ -69,6 +68,7 @@ class TimeseriesWidget {
 
     this.btnDelete = el.querySelector("#btnDelete")!;
     this.btnDelete.innerHTML = this.model.get("icons").delete;
+    this.btnDelete.addEventListener("click", this.btnDeleteClicked.bind(this));
 
     this.btnZoomIn = el.querySelector("#btnZoomIn")!;
     this.btnZoomIn.innerHTML = this.model.get("icons").zoom_in;
@@ -97,9 +97,6 @@ class TimeseriesWidget {
     }
 
     this.annotations = this.model.get("annotations");
-    for (let i = 0; i < this.annotations.length; i++) {
-      this.annotations[i].index = i;
-    }
     this.extractTags();
 
     this.addLegend();
@@ -121,12 +118,21 @@ class TimeseriesWidget {
       start: this.currentTime,
       end: this.currentTime + 0.5,
       tag: this.tags[0], // TODO: Tag hard coded
-      index: this.annotations.length,
     });
 
     console.log(this.annotations);
 
     this.selectedAnnIndex = this.annotations.length - 1;
+  }
+
+  btnDeleteClicked() {
+    if (this.selectedAnnIndex == null) return;
+
+    console.log(this.selectedAnnIndex);
+    console.log(this.annotations);
+
+    this.annotations.splice(this.selectedAnnIndex, 1);
+    this.selectedAnnIndex = null;
   }
 
   checkForAnnSelection(mouseX: number) {
@@ -135,12 +141,12 @@ class TimeseriesWidget {
 
     const drawnAnns = this.getAnnotationsToDraw(startTime, endTime);
 
-    const annotation = drawnAnns.find(
-      (ann) => ann.start < mouseX && ann.start + ann.width > mouseX
-    );
-
-    this.selectedAnnIndex =
-      annotation == undefined ? null : annotation.index ?? null;
+    this.selectedAnnIndex = null;
+    for (let i = 0; i < drawnAnns.length; i++) {
+      const ann = drawnAnns[i];
+      if (ann.start > mouseX || ann.start + ann.width < mouseX) continue;
+      this.selectedAnnIndex = i;
+    }
   }
 
   extractTags() {
@@ -334,27 +340,30 @@ class TimeseriesWidget {
     const widthRange = endX - startX;
     const timeRange = endTime - startTime;
 
-    for (const ann of this.annotations.filter(
-      (p) =>
-        (p.start >= startTime && p.start <= endTime) ||
-        (p.end >= startTime && p.end <= endTime) ||
-        (p.start <= startTime && p.end >= endTime)
-    )) {
-      const tagIndex = this.tags.findIndex((e) => e == ann.tag);
+    for (let i = 0; i < this.annotations.length; i++) {
+      const ann = this.annotations[i];
+      if (
+        (ann.start >= startTime && ann.start <= endTime) ||
+        (ann.end >= startTime && ann.end <= endTime) ||
+        (ann.start <= startTime && ann.end >= endTime)
+      ) {
+        const tagIndex = this.tags.findIndex((e) => e == ann.tag);
 
-      const start =
-        (widthRange * (Math.max(ann["start"], startTime) - startTime)) /
-        timeRange;
-      const end =
-        (widthRange * (Math.min(ann["end"], endTime) - startTime)) / timeRange;
+        const start =
+          (widthRange * (Math.max(ann["start"], startTime) - startTime)) /
+          timeRange;
+        const end =
+          (widthRange * (Math.min(ann["end"], endTime) - startTime)) /
+          timeRange;
 
-      annotationsToDraw.push({
-        start: startX + start,
-        width: end - start,
-        color: this.getTagColor(tagIndex),
-        index: ann.index,
-        tagIndex: tagIndex,
-      });
+        annotationsToDraw.push({
+          start: startX + start,
+          width: end - start,
+          color: this.getTagColor(tagIndex),
+          index: i,
+          tagIndex: tagIndex,
+        });
+      }
     }
 
     return annotationsToDraw;
@@ -374,12 +383,13 @@ class TimeseriesWidget {
 
     const annotationsToDraw = this.getAnnotationsToDraw(startTime, endTime);
 
-    for (const ann of annotationsToDraw) {
+    for (let i = 0; i < annotationsToDraw.length; i++) {
+      const ann = annotationsToDraw[i];
       let color = ann.color;
       let transparency = "22";
       if (this.selectedAnnIndex != null) {
-        color = ann.index == this.selectedAnnIndex ? ann.color : "#78909C";
-        transparency = ann.index == this.selectedAnnIndex ? "44" : "22";
+        color = i == this.selectedAnnIndex ? ann.color : "#78909C";
+        transparency = i == this.selectedAnnIndex ? "44" : "22";
       }
 
       ctx.fillStyle = color + transparency;
