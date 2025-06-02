@@ -335,7 +335,7 @@ class TimeseriesWidget {
     const startTime = this.currentTime - this.window_size_in_s / 2;
     const endTime = this.currentTime + this.window_size_in_s / 2;
 
-    const startIndex = this.times.findIndex((e) => e > startTime);
+    const startIndex = this.times.findIndex((e) => e >= startTime);
     const endIndexPlus1 = this.times.findIndex((e) => e > endTime);
 
     const endIndex =
@@ -393,11 +393,11 @@ class TimeseriesWidget {
     ctx.beginPath();
 
     const indexRange = endIndex - startIndex;
-    const fullWidthRange = width - 2;
+    const fullWidthRange = width;
     const startX = leftOffsetPercentage * fullWidthRange;
     const endX = rightOffsetPercentage * fullWidthRange;
     const widthRange = endX - startX;
-    const heightRange = height - 2;
+    const heightRange = height;
     const yRange = max - min;
 
     const values = this.values[channelIndex];
@@ -413,7 +413,7 @@ class TimeseriesWidget {
         ? Math.floor(indexRange / max_points_to_display)
         : 1;
 
-    for (let i = startIndex; i <= endIndex; i += di) {
+    for (let i = Math.max(0, startIndex - di); i < Math.min(values.length, endIndex + 2 * di); i += di) {
       const x = ((i - startIndex) / indexRange) * widthRange + startX;
       const y = height - (heightRange * (values[i] - min)) / yRange;
       ctx.lineTo(x, y);
@@ -422,7 +422,7 @@ class TimeseriesWidget {
     ctx.stroke();
   }
 
-  getAnnotationsToDraw(startTime: number, endTime: number) {
+  getAnnotationsToDraw(startTime: number, endTime: number) {    
     let annotationsToDraw = [];
 
     const width = this.canvas.width;
@@ -430,7 +430,7 @@ class TimeseriesWidget {
     const leftOffsetPercentage = 0;
     const rightOffsetPercentage = 1;
 
-    const fullWidthRange = width - 2;
+    const fullWidthRange = width;
     const startX = fullWidthRange * leftOffsetPercentage;
     const endX = fullWidthRange * rightOffsetPercentage;
     const widthRange = endX - startX;
