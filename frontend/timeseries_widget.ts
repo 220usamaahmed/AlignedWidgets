@@ -47,6 +47,10 @@ class TimeseriesWidget {
 
   window_size_in_s = 5;
   selectedAnnIndex: number | null = null;
+  selectedHandle: {
+    annIndex: number;
+    side: "left" | "right"
+  } | null = null;
 
   constructor({ model, el }: RenderProps<TimerseriesWidgetModel>) {
     this.model = model;
@@ -104,14 +108,33 @@ class TimeseriesWidget {
   }
 
   canvasMouseDown(e: MouseEvent) {
+    if (this.checkForHandleSelection(e.offsetX, e.offsetY)) {
+      console.log(this.selectedHandle)
+      return;
+    }
+    
     this.checkForAnnSelection(e.offsetX);
   }
 
-  canvasMouseMove(e: MouseEvent) {}
+  canvasMouseMove(e: MouseEvent) {
+    if (this.selectedHandle == null) return;
+
+    const width = this.canvas.width;
+    const mouseX = e.offsetX;
+    const time = this.window_size_in_s * (mouseX - (width / 2)) / width;
+    
+    if (this.selectedHandle.side == "left") {
+      this.annotations[this.selectedHandle.annIndex].start = time;
+    } else {
+      this.annotations[this.selectedHandle.annIndex].end = time;
+    }
+  }
 
   canvasMouseLeave(e: MouseEvent) {}
 
-  canvasMouseUp(e: MouseEvent) {}
+  canvasMouseUp(e: MouseEvent) {
+    this.selectedHandle = null;
+  }
 
   btnAddClicked() {
     this.annotations.push({
@@ -119,8 +142,6 @@ class TimeseriesWidget {
       end: this.currentTime + 0.5,
       tag: this.tags[0], // TODO: Tag hard coded
     });
-
-    console.log(this.annotations);
 
     this.selectedAnnIndex = this.annotations.length - 1;
   }
@@ -141,16 +162,45 @@ class TimeseriesWidget {
 
     const drawnAnns = this.getAnnotationsToDraw(startTime, endTime);
 
-    console.log(drawnAnns);
-
     this.selectedAnnIndex = null;
     for (let i = 0; i < drawnAnns.length; i++) {
       const ann = drawnAnns[i];
       if (ann.start > mouseX || ann.start + ann.width < mouseX) continue;
       this.selectedAnnIndex = ann.index;
+      return true;
     }
 
-    console.log(this.selectedAnnIndex);
+    return false;
+  }
+
+  checkForHandleSelection(mouseX: number, mouesY: number) {
+    const startTime = this.currentTime - this.window_size_in_s / 2;
+    const endTime = this.currentTime + this.window_size_in_s / 2;
+
+    const drawnAnns = this.getAnnotationsToDraw(startTime, endTime);
+
+    this.selectedHandle = null;
+    for (let i = 0; i < drawnAnns.length; i++) {
+      const ann = drawnAnns[i];
+
+      // Check for left handle
+      if (Math.abs(mouseX - ann.start) < 6) {
+        this.selectedHandle = {
+          annIndex: i,
+          side: "left"
+        }
+        return true;
+      }
+
+      // Check for right handle
+      if (Math.abs(mouseX - ann.start - ann.width) < 6) {
+        this.selectedHandle = {
+          annIndex: i,
+          side: "right"
+        }
+        return true;
+      }
+    }
   }
 
   extractTags() {
@@ -406,6 +456,34 @@ class TimeseriesWidget {
         ann.width - 2 * indicatorPadding,
         indicatorHeight - indicatorPadding
       );
+
+      if (this.selectedAnnIndex == ann.index) {        
+        ctx.lineCap = "round";
+        ctx.strokeStyle = color;
+        ctx.lineWidth = 4;
+        
+        // Left handle
+        ctx.beginPath();
+        ctx.moveTo(ann.start - 4, height / 2 - 12);
+        ctx.lineTo(ann.start - 4, height / 2 + 12);
+        ctx.stroke();        
+
+        ctx.beginPath();
+        ctx.moveTo(ann.start + 4, height / 2 - 12);
+        ctx.lineTo(ann.start + 4, height / 2 + 12);
+        ctx.stroke();        
+
+        // Right handle
+        ctx.beginPath();
+        ctx.moveTo(ann.start + ann.width- 4, height / 2 - 12);
+        ctx.lineTo(ann.start + ann.width- 4, height / 2 + 12);
+        ctx.stroke();        
+
+        ctx.beginPath();
+        ctx.moveTo(ann.start + ann.width+ 4, height / 2 - 12);
+        ctx.lineTo(ann.start + ann.width+ 4, height / 2 + 12);
+        ctx.stroke();        
+      }
     }
   }
 
