@@ -47,9 +47,15 @@ class TimeseriesWidget {
 
   window_size_in_s = 5;
   selectedAnnIndex: number | null = null;
-  selectedHandle: {
+  selectedResizingHandle: {
     annIndex: number;
     side: "left" | "right"
+  } | null = null;
+  selectedMoveHandle: {
+    annIndex: number;
+    grabX: number;
+    annStart: number;
+    annEnd: number;
   } | null = null;
 
   constructor({ model, el }: RenderProps<TimerseriesWidgetModel>) {
@@ -112,21 +118,38 @@ class TimeseriesWidget {
   }
 
   canvasMouseMove(e: MouseEvent) {
-    if (this.selectedHandle == null) return;
-
-    const width = this.canvas.width;
-    const mouseX = e.offsetX;
-    const time = this.currentTime + this.window_size_in_s * (mouseX - (width / 2)) / width;
-
-    if (this.selectedHandle.side == "left") {
-      this.annotations[this.selectedHandle.annIndex].start = time;
-    } else {
-      this.annotations[this.selectedHandle.annIndex].end = time;
+    if (this.selectedResizingHandle != null) {
+      this.resizeAnnotation(e.offsetX);
+    } else if (this.selectedMoveHandle != null) {
+      this.moveAnnotation(e.offsetX);
     }
   }
 
+  resizeAnnotation(mouseX: number) {
+    if (this.selectedResizingHandle == null) return;
+
+    const width = this.canvas.width;
+    const time = this.currentTime + this.window_size_in_s * (mouseX - (width / 2)) / width;
+
+    if (this.selectedResizingHandle.side == "left") {
+      this.annotations[this.selectedResizingHandle.annIndex].start = time;
+    } else {
+      this.annotations[this.selectedResizingHandle.annIndex].end = time;
+    }
+  }
+
+  moveAnnotation(mouseX: number) {
+    if (this.selectedMoveHandle == null) return;
+
+    const width = this.canvas.width;
+    const offsetTime = this.window_size_in_s * (mouseX - this.selectedMoveHandle.grabX) / width;
+    this.annotations[this.selectedMoveHandle.annIndex].start = this.selectedMoveHandle.annStart + offsetTime;
+    this.annotations[this.selectedMoveHandle.annIndex].end = this.selectedMoveHandle.annEnd + offsetTime;
+  }
+
   canvasMouseUp() {
-    this.selectedHandle = null;
+    this.selectedResizingHandle = null;
+    this.selectedMoveHandle = null;
     this.syncAnnotations();
   }
 
@@ -185,13 +208,14 @@ class TimeseriesWidget {
 
     const drawnAnns = this.getAnnotationsToDraw(startTime, endTime);
 
-    this.selectedHandle = null;
+    this.selectedResizingHandle = null;
+    this.selectedMoveHandle = null;
     for (let i = 0; i < drawnAnns.length; i++) {
       const ann = drawnAnns[i];
 
       // Check for left handle
       if (Math.abs(mouseX - ann.start) < 6) {
-        this.selectedHandle = {
+        this.selectedResizingHandle = {
           annIndex: ann.index,
           side: "left"
         }
@@ -200,11 +224,21 @@ class TimeseriesWidget {
 
       // Check for right handle
       if (Math.abs(mouseX - ann.start - ann.width) < 6) {
-        this.selectedHandle = {
+        this.selectedResizingHandle = {
           annIndex: ann.index,
           side: "right"
         }
         return true;
+      }
+
+      // Move handle
+      if (mouseX > ann.start && mouseX < ann.start + ann.width) {
+        this.selectedMoveHandle = {
+          annIndex: ann.index,
+          grabX: mouseX,
+          annStart: this.annotations[ann.index].start,
+          annEnd: this.annotations[ann.index].end,
+        }
       }
     }
 
