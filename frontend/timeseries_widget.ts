@@ -61,10 +61,6 @@ class TimeseriesWidget {
     this.canvas.addEventListener("mousedown", this.canvasMouseDown.bind(this));
     this.canvas.addEventListener("mousemove", this.canvasMouseMove.bind(this));
     this.canvas.addEventListener("mouseup", this.canvasMouseUp.bind(this));
-    this.canvas.addEventListener(
-      "mouseleave",
-      this.canvasMouseLeave.bind(this)
-    );
 
     this.btnAdd = el.querySelector("#btnAdd")!;
     this.btnAdd.innerHTML = this.model.get("icons").add;
@@ -108,11 +104,10 @@ class TimeseriesWidget {
   }
 
   canvasMouseDown(e: MouseEvent) {
-    if (this.checkForHandleSelection(e.offsetX, e.offsetY)) {
-      console.log(this.selectedHandle)
+    if (this.checkForHandleSelection(e.offsetX)) {
       return;
     }
-    
+
     this.checkForAnnSelection(e.offsetX);
   }
 
@@ -121,8 +116,8 @@ class TimeseriesWidget {
 
     const width = this.canvas.width;
     const mouseX = e.offsetX;
-    const time = this.window_size_in_s * (mouseX - (width / 2)) / width;
-    
+    const time = this.currentTime + this.window_size_in_s * (mouseX - (width / 2)) / width;
+
     if (this.selectedHandle.side == "left") {
       this.annotations[this.selectedHandle.annIndex].start = time;
     } else {
@@ -130,10 +125,9 @@ class TimeseriesWidget {
     }
   }
 
-  canvasMouseLeave(e: MouseEvent) {}
-
-  canvasMouseUp(e: MouseEvent) {
+  canvasMouseUp() {
     this.selectedHandle = null;
+    this.syncAnnotations();
   }
 
   btnAddClicked() {
@@ -144,6 +138,8 @@ class TimeseriesWidget {
     });
 
     this.selectedAnnIndex = this.annotations.length - 1;
+
+    this.syncAnnotations();
   }
 
   btnDeleteClicked() {
@@ -154,6 +150,16 @@ class TimeseriesWidget {
 
     this.annotations.splice(this.selectedAnnIndex, 1);
     this.selectedAnnIndex = null;
+
+    this.syncAnnotations();
+  }
+
+  syncAnnotations() {    
+    console.log("Updated annotations", this.annotations);
+    
+    this.model.set("annotations", [])
+    this.model.set("annotations", [...this.annotations]);
+    this.model.save_changes();
   }
 
   checkForAnnSelection(mouseX: number) {
@@ -173,7 +179,7 @@ class TimeseriesWidget {
     return false;
   }
 
-  checkForHandleSelection(mouseX: number, mouesY: number) {
+  checkForHandleSelection(mouseX: number) {
     const startTime = this.currentTime - this.window_size_in_s / 2;
     const endTime = this.currentTime + this.window_size_in_s / 2;
 
@@ -186,7 +192,7 @@ class TimeseriesWidget {
       // Check for left handle
       if (Math.abs(mouseX - ann.start) < 6) {
         this.selectedHandle = {
-          annIndex: i,
+          annIndex: ann.index,
           side: "left"
         }
         return true;
@@ -195,12 +201,14 @@ class TimeseriesWidget {
       // Check for right handle
       if (Math.abs(mouseX - ann.start - ann.width) < 6) {
         this.selectedHandle = {
-          annIndex: i,
+          annIndex: ann.index,
           side: "right"
         }
         return true;
       }
     }
+
+    return false;
   }
 
   extractTags() {
@@ -457,32 +465,32 @@ class TimeseriesWidget {
         indicatorHeight - indicatorPadding
       );
 
-      if (this.selectedAnnIndex == ann.index) {        
+      if (this.selectedAnnIndex == ann.index) {
         ctx.lineCap = "round";
         ctx.strokeStyle = color;
         ctx.lineWidth = 4;
-        
+
         // Left handle
         ctx.beginPath();
         ctx.moveTo(ann.start - 4, height / 2 - 12);
         ctx.lineTo(ann.start - 4, height / 2 + 12);
-        ctx.stroke();        
+        ctx.stroke();
 
         ctx.beginPath();
         ctx.moveTo(ann.start + 4, height / 2 - 12);
         ctx.lineTo(ann.start + 4, height / 2 + 12);
-        ctx.stroke();        
+        ctx.stroke();
 
         // Right handle
         ctx.beginPath();
-        ctx.moveTo(ann.start + ann.width- 4, height / 2 - 12);
-        ctx.lineTo(ann.start + ann.width- 4, height / 2 + 12);
-        ctx.stroke();        
+        ctx.moveTo(ann.start + ann.width - 4, height / 2 - 12);
+        ctx.lineTo(ann.start + ann.width - 4, height / 2 + 12);
+        ctx.stroke();
 
         ctx.beginPath();
-        ctx.moveTo(ann.start + ann.width+ 4, height / 2 - 12);
-        ctx.lineTo(ann.start + ann.width+ 4, height / 2 + 12);
-        ctx.stroke();        
+        ctx.moveTo(ann.start + ann.width + 4, height / 2 - 12);
+        ctx.lineTo(ann.start + ann.width + 4, height / 2 + 12);
+        ctx.stroke();
       }
     }
   }
@@ -516,7 +524,7 @@ class TimeseriesWidget {
     this.currentTime = this.model.get("sync_time");
   }
 
-  isRunningChanged() {}
+  isRunningChanged() { }
 
   render() {
     this.model.on("change:sync_time", this.syncTimeChanged.bind(this));
