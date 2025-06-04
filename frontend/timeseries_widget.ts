@@ -43,6 +43,7 @@ class TimeseriesWidget {
   btnZoomOut: HTMLButtonElement;
   btnToggleTagsList: HTMLButtonElement;
   tagsList: HTMLDivElement;
+  tagInputElements: HTMLInputElement[] = [];
 
   currentTime: number;
   lastAnimationFrameTimestamp: DOMHighResTimeStamp | null = null;
@@ -124,8 +125,42 @@ class TimeseriesWidget {
     this.yRange = this.model.get('y_range');
     this.tags = this.model.get('tags');
 
+    this.populateTagsList();
     this.addLegend();
     this.addTitle();
+  }
+
+  populateTagsList() {
+    for (const tag of this.tags) {
+      const label = document.createElement('label');
+      const inputCheckbox = document.createElement('input');
+      const labelText = document.createTextNode(tag);
+
+      inputCheckbox.type = 'checkbox';
+      inputCheckbox.value = tag;
+      inputCheckbox.addEventListener('change', this.tagToggled.bind(this));
+
+      label.appendChild(inputCheckbox);
+      label.appendChild(labelText);
+
+      this.tagInputElements.push(inputCheckbox);
+      this.tagsList.appendChild(label);
+    }
+  }
+
+  tagToggled(e: Event) {
+    if (this.selectedAnnIndex == null) return;
+
+    const target = e.target as HTMLInputElement;
+    const ann = this.annotations[this.selectedAnnIndex];
+
+    if (target.checked) {
+      ann.tags.push(target.value);
+    } else {
+      ann.tags = ann.tags.filter(t => t !== target.value);
+    }
+
+    this.syncAnnotations();
   }
 
   canvasMouseDown(e: MouseEvent) {
@@ -133,7 +168,22 @@ class TimeseriesWidget {
       return;
     }
 
-    this.checkForAnnSelection(e.offsetX);
+    if (this.checkForAnnSelection(e.offsetX)) {
+      this.updateTagCheckboxes();
+      this.btnToggleTagsList.classList.add('show');
+    } else {
+      this.btnToggleTagsList.classList.remove('show');
+      this.tagsList.classList.remove('show');
+    }
+  }
+
+  updateTagCheckboxes() {
+    if (this.selectedAnnIndex == null) return;
+    const tags = this.annotations[this.selectedAnnIndex].tags;
+
+    for (const checkbox of this.tagInputElements) {
+      checkbox.checked = tags.includes(checkbox.value);
+    }
   }
 
   canvasMouseMove(e: MouseEvent) {

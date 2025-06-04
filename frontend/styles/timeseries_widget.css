@@ -62,7 +62,7 @@
 }
 
 .left .dropdown .dropbtn {
-  display: block;
+  display: none;
   width: auto;
   padding: 0 16px;
   border-radius: 8px;
@@ -120,5 +120,5 @@
 }
 
 .show {
-  display: block;
+  display: block !important;
 }
