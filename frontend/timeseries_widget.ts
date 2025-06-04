@@ -41,6 +41,8 @@ class TimeseriesWidget {
   btnDelete: HTMLButtonElement;
   btnZoomIn: HTMLButtonElement;
   btnZoomOut: HTMLButtonElement;
+  btnToggleTagsList: HTMLButtonElement;
+  tagsList: HTMLDivElement;
 
   currentTime: number;
   lastAnimationFrameTimestamp: DOMHighResTimeStamp | null = null;
@@ -89,6 +91,14 @@ class TimeseriesWidget {
 
     this.btnZoomOut = el.querySelector('#btnZoomOut')!;
     this.btnZoomOut.innerHTML = this.model.get('icons').zoom_out;
+
+    this.btnToggleTagsList = el.querySelector('#btnToggleTagsList')!;
+    this.btnToggleTagsList.addEventListener(
+      'click',
+      this.toggleTagsList.bind(this)
+    );
+
+    this.tagsList = el.querySelector('#tagsList')!;
 
     this.currentTime = this.model.get('sync_time');
 
@@ -186,6 +196,10 @@ class TimeseriesWidget {
     this.selectedAnnIndex = null;
 
     this.syncAnnotations();
+  }
+
+  toggleTagsList() {
+    this.tagsList.classList.toggle('show');
   }
 
   syncAnnotations() {
