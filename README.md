@@ -1,4 +1,7 @@
-# aligned_widgets
+# Aligned Widgets
+
+A set of Jupyter Notebook widgets which let you visualize synchronized
+multimodal data.
 
 ## Installation
 
