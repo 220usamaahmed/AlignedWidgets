@@ -6,7 +6,7 @@ import timeseriesTemplate from './templates/timeseries_widget.html';
 type Annotation = {
   start: number;
   end: number;
-  tag: string;
+  tags: string[];
 };
 
 type YRange = {
@@ -19,6 +19,7 @@ interface TimerseriesWidgetModel {
   sync_time: number;
   times: Float64Array;
   values: Float64Array;
+  tags: string[];
   annotations: Annotation[];
   channel_names: string[];
   title: string;
@@ -111,7 +112,7 @@ class TimeseriesWidget {
 
     this.annotations = this.model.get('annotations');
     this.yRange = this.model.get('y_range');
-    this.extractTags();
+    this.tags = this.model.get('tags');
 
     this.addLegend();
     this.addTitle();
@@ -170,7 +171,7 @@ class TimeseriesWidget {
     this.annotations.push({
       start: this.currentTime,
       end: this.currentTime + 0.5,
-      tag: this.tags[0], // TODO: Tag hard coded
+      tags: [],
     });
 
     this.selectedAnnIndex = this.annotations.length - 1;
@@ -251,14 +252,6 @@ class TimeseriesWidget {
     }
 
     return false;
-  }
-
-  extractTags() {
-    for (const ann of this.model.get('annotations')) {
-      if (!this.tags.includes(ann.tag)) {
-        this.tags.push(ann.tag);
-      }
-    }
   }
 
   addLegend() {
@@ -476,8 +469,6 @@ class TimeseriesWidget {
         (ann.end >= startTime && ann.end <= endTime) ||
         (ann.start <= startTime && ann.end >= endTime)
       ) {
-        const tagIndex = this.tags.findIndex(e => e == ann.tag);
-
         const start =
           (widthRange * (Math.max(ann['start'], startTime) - startTime)) /
           timeRange;
@@ -488,9 +479,8 @@ class TimeseriesWidget {
         annotationsToDraw.push({
           start: startX + start,
           width: end - start,
-          color: this.getTagColor(tagIndex),
+          color: '#607D8B',
           index: i,
-          tagIndex: tagIndex,
         });
       }
     }
@@ -527,7 +517,7 @@ class TimeseriesWidget {
       ctx.fillStyle = color;
       ctx.fillRect(
         ann.start + indicatorPadding,
-        ann.tagIndex * indicatorHeight + indicatorPadding,
+        indicatorPadding,
         ann.width - 2 * indicatorPadding,
         indicatorHeight - indicatorPadding
       );
