@@ -7,9 +7,9 @@ const isDev = process.argv.includes("--dev");
 
 const config = {
   entryPoints: [
-    "frontend/widget.ts",
     "frontend/control_widget.ts",
     "frontend/video_widget.ts",
+    "frontend/timeseries_widget.ts",
   ],
   bundle: true,
   minify: !isDev,

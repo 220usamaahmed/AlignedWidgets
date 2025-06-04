@@ -8,6 +8,7 @@ version = "0.0.0"
 dependencies = [
     "anywidget",
     "flask>=3.1.1",
+    "numpy>=2.2.6",
 ]
 readme = "README.md"
 
