@@ -23,7 +23,7 @@
 }
 
 .legend span::before {
-  content: "";
+  content: '';
   display: inline-block;
   width: 1em;
   height: 4px;
