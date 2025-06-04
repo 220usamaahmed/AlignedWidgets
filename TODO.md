@@ -15,4 +15,5 @@
 - [ ] Display x,y axes values
 - [ ] Min/Max current range finding optimization
 - [ ] Add README
+- [ ] Add documentation
 - [ ] Publish on PyPI / Releases
