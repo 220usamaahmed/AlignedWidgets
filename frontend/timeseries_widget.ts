@@ -9,6 +9,11 @@ type Annotation = {
   tag: string;
 };
 
+type YRange = {
+  min: number | null;
+  max: number | null
+}
+
 interface TimerseriesWidgetModel {
   is_running: boolean;
   sync_time: number;
@@ -17,6 +22,7 @@ interface TimerseriesWidgetModel {
   annotations: Annotation[];
   channel_names: string[];
   title: string;
+  y_range: YRange,
   icons: {
     add: string;
     delete: string;
@@ -42,6 +48,7 @@ class TimeseriesWidget {
   times: Float64Array;
   values: Float64Array[] = [];
   numChannels: number;
+  yRange: YRange;
   annotations: Annotation[] = [];
   tags: string[] = [];
 
@@ -103,6 +110,7 @@ class TimeseriesWidget {
     }
 
     this.annotations = this.model.get("annotations");
+    this.yRange = this.model.get("y_range");
     this.extractTags();
 
     this.addLegend();
@@ -167,19 +175,14 @@ class TimeseriesWidget {
 
   btnDeleteClicked() {
     if (this.selectedAnnIndex == null) return;
-
-    console.log(this.selectedAnnIndex);
-    console.log(this.annotations);
-
+    
     this.annotations.splice(this.selectedAnnIndex, 1);
     this.selectedAnnIndex = null;
 
     this.syncAnnotations();
   }
 
-  syncAnnotations() {    
-    console.log("Updated annotations", this.annotations);
-    
+  syncAnnotations() {        
     this.model.set("annotations", [])
     this.model.set("annotations", [...this.annotations]);
     this.model.save_changes();
@@ -361,9 +364,31 @@ class TimeseriesWidget {
         endIndex,
         leftOffsetPercentage,
         rightOffsetPercentage,
-        -1,
-        1
       );
+    }
+  }
+
+  getRange(startIndex: number, endIndex: number) {
+    let min = this.yRange.min;
+    let max = this.yRange.max;
+
+    if (min != null && max != null) return { min, max };
+
+    const mins = [];
+    const maxs = [];
+
+    for (let c = 0; c < this.numChannels; c++) {
+      if (min == null) {
+        mins.push(Math.min(...this.values[c].slice(startIndex, endIndex + 1)));
+      }
+      if (max == null) {
+        maxs.push(Math.max(...this.values[c].slice(startIndex, endIndex + 1)));
+      }
+    }
+
+    return {
+      min: min ? min : Math.min(...mins),
+      max: max ? max : Math.max(...maxs)
     }
   }
 
@@ -373,8 +398,6 @@ class TimeseriesWidget {
     endIndex: number,
     leftOffsetPercentage: number,
     rightOffsetPercentage: number,
-    min: number,
-    max: number
   ) {
     if (isNaN(startIndex) || isNaN(endIndex)) return;
 
@@ -398,6 +421,7 @@ class TimeseriesWidget {
     const endX = rightOffsetPercentage * fullWidthRange;
     const widthRange = endX - startX;
     const heightRange = height;
+    const {min, max} = this.getRange(startIndex, endIndex);
     const yRange = max - min;
 
     const values = this.values[channelIndex];
