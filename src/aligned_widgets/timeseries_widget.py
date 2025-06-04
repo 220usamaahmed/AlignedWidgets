@@ -24,6 +24,7 @@ class TimeseriesWidget(anywidget.AnyWidget):
     values = traitlets.Bytes().tag(sync=True)
     channel_names = traitlets.List().tag(sync=True)
     annotations = traitlets.List().tag(sync=True)
+    y_range = traitlets.Dict().tag(sync=True)
 
     is_running = traitlets.Bool(False).tag(sync=True)
     sync_time = traitlets.Float(0.0).tag(sync=True)
@@ -45,6 +46,7 @@ class TimeseriesWidget(anywidget.AnyWidget):
         *,
         channel_names: _t.List[str] = [],
         title: str = "",
+        y_range: _t.Tuple = (None, None),
         **kwargs,
     ):
         super().__init__(**kwargs)
@@ -64,3 +66,4 @@ class TimeseriesWidget(anywidget.AnyWidget):
         self.annotations = annotations
         self.channel_names = channel_names
         self.title = title
+        self.y_range = {"min": y_range[0], "max": y_range[1]}

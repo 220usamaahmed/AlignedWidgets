@@ -1,12 +1,17 @@
-import type { AnyModel, RenderProps } from "@anywidget/types";
-import "./styles/widget.css";
-import "./styles/timeseries_widget.css";
-import timeseriesTemplate from "./templates/timeseries_widget.html";
+import type { AnyModel, RenderProps } from '@anywidget/types';
+import './styles/widget.css';
+import './styles/timeseries_widget.css';
+import timeseriesTemplate from './templates/timeseries_widget.html';
 
 type Annotation = {
   start: number;
   end: number;
   tag: string;
+};
+
+type YRange = {
+  min: number | null;
+  max: number | null;
 };
 
 interface TimerseriesWidgetModel {
@@ -17,6 +22,7 @@ interface TimerseriesWidgetModel {
   annotations: Annotation[];
   channel_names: string[];
   title: string;
+  y_range: YRange;
   icons: {
     add: string;
     delete: string;
@@ -42,6 +48,7 @@ class TimeseriesWidget {
   times: Float64Array;
   values: Float64Array[] = [];
   numChannels: number;
+  yRange: YRange;
   annotations: Annotation[] = [];
   tags: string[] = [];
 
@@ -49,7 +56,7 @@ class TimeseriesWidget {
   selectedAnnIndex: number | null = null;
   selectedResizingHandle: {
     annIndex: number;
-    side: "left" | "right"
+    side: 'left' | 'right';
   } | null = null;
   selectedMoveHandle: {
     annIndex: number;
@@ -63,32 +70,32 @@ class TimeseriesWidget {
     this.el = el;
     el.innerHTML = timeseriesTemplate;
 
-    this.canvas = el.querySelector("#canvas")!;
-    this.canvas.addEventListener("mousedown", this.canvasMouseDown.bind(this));
-    this.canvas.addEventListener("mousemove", this.canvasMouseMove.bind(this));
-    this.canvas.addEventListener("mouseup", this.canvasMouseUp.bind(this));
+    this.canvas = el.querySelector('#canvas')!;
+    this.canvas.addEventListener('mousedown', this.canvasMouseDown.bind(this));
+    this.canvas.addEventListener('mousemove', this.canvasMouseMove.bind(this));
+    this.canvas.addEventListener('mouseup', this.canvasMouseUp.bind(this));
 
-    this.btnAdd = el.querySelector("#btnAdd")!;
-    this.btnAdd.innerHTML = this.model.get("icons").add;
-    this.btnAdd.addEventListener("click", this.btnAddClicked.bind(this));
+    this.btnAdd = el.querySelector('#btnAdd')!;
+    this.btnAdd.innerHTML = this.model.get('icons').add;
+    this.btnAdd.addEventListener('click', this.btnAddClicked.bind(this));
 
-    this.btnDelete = el.querySelector("#btnDelete")!;
-    this.btnDelete.innerHTML = this.model.get("icons").delete;
-    this.btnDelete.addEventListener("click", this.btnDeleteClicked.bind(this));
+    this.btnDelete = el.querySelector('#btnDelete')!;
+    this.btnDelete.innerHTML = this.model.get('icons').delete;
+    this.btnDelete.addEventListener('click', this.btnDeleteClicked.bind(this));
 
-    this.btnZoomIn = el.querySelector("#btnZoomIn")!;
-    this.btnZoomIn.innerHTML = this.model.get("icons").zoom_in;
+    this.btnZoomIn = el.querySelector('#btnZoomIn')!;
+    this.btnZoomIn.innerHTML = this.model.get('icons').zoom_in;
 
-    this.btnZoomOut = el.querySelector("#btnZoomOut")!;
-    this.btnZoomOut.innerHTML = this.model.get("icons").zoom_out;
+    this.btnZoomOut = el.querySelector('#btnZoomOut')!;
+    this.btnZoomOut.innerHTML = this.model.get('icons').zoom_out;
 
-    this.currentTime = this.model.get("sync_time");
+    this.currentTime = this.model.get('sync_time');
 
-    const times_bytes = this.model.get("times");
+    const times_bytes = this.model.get('times');
     const times_buffer = times_bytes.buffer || times_bytes;
     this.times = new Float64Array(times_buffer);
 
-    const values_bytes = this.model.get("values");
+    const values_bytes = this.model.get('values');
     const values_buffer = values_bytes.buffer || values_bytes;
     const all_values = new Float64Array(values_buffer);
 
@@ -102,7 +109,8 @@ class TimeseriesWidget {
       );
     }
 
-    this.annotations = this.model.get("annotations");
+    this.annotations = this.model.get('annotations');
+    this.yRange = this.model.get('y_range');
     this.extractTags();
 
     this.addLegend();
@@ -129,9 +137,10 @@ class TimeseriesWidget {
     if (this.selectedResizingHandle == null) return;
 
     const width = this.canvas.width;
-    const time = this.currentTime + this.window_size_in_s * (mouseX - (width / 2)) / width;
+    const time =
+      this.currentTime + (this.window_size_in_s * (mouseX - width / 2)) / width;
 
-    if (this.selectedResizingHandle.side == "left") {
+    if (this.selectedResizingHandle.side == 'left') {
       this.annotations[this.selectedResizingHandle.annIndex].start = time;
     } else {
       this.annotations[this.selectedResizingHandle.annIndex].end = time;
@@ -142,9 +151,13 @@ class TimeseriesWidget {
     if (this.selectedMoveHandle == null) return;
 
     const width = this.canvas.width;
-    const offsetTime = this.window_size_in_s * (mouseX - this.selectedMoveHandle.grabX) / width;
-    this.annotations[this.selectedMoveHandle.annIndex].start = this.selectedMoveHandle.annStart + offsetTime;
-    this.annotations[this.selectedMoveHandle.annIndex].end = this.selectedMoveHandle.annEnd + offsetTime;
+    const offsetTime =
+      (this.window_size_in_s * (mouseX - this.selectedMoveHandle.grabX)) /
+      width;
+    this.annotations[this.selectedMoveHandle.annIndex].start =
+      this.selectedMoveHandle.annStart + offsetTime;
+    this.annotations[this.selectedMoveHandle.annIndex].end =
+      this.selectedMoveHandle.annEnd + offsetTime;
   }
 
   canvasMouseUp() {
@@ -168,20 +181,15 @@ class TimeseriesWidget {
   btnDeleteClicked() {
     if (this.selectedAnnIndex == null) return;
 
-    console.log(this.selectedAnnIndex);
-    console.log(this.annotations);
-
     this.annotations.splice(this.selectedAnnIndex, 1);
     this.selectedAnnIndex = null;
 
     this.syncAnnotations();
   }
 
-  syncAnnotations() {    
-    console.log("Updated annotations", this.annotations);
-    
-    this.model.set("annotations", [])
-    this.model.set("annotations", [...this.annotations]);
+  syncAnnotations() {
+    this.model.set('annotations', []);
+    this.model.set('annotations', [...this.annotations]);
     this.model.save_changes();
   }
 
@@ -217,8 +225,8 @@ class TimeseriesWidget {
       if (Math.abs(mouseX - ann.start) < 6) {
         this.selectedResizingHandle = {
           annIndex: ann.index,
-          side: "left"
-        }
+          side: 'left',
+        };
         return true;
       }
 
@@ -226,8 +234,8 @@ class TimeseriesWidget {
       if (Math.abs(mouseX - ann.start - ann.width) < 6) {
         this.selectedResizingHandle = {
           annIndex: ann.index,
-          side: "right"
-        }
+          side: 'right',
+        };
         return true;
       }
 
@@ -238,7 +246,7 @@ class TimeseriesWidget {
           grabX: mouseX,
           annStart: this.annotations[ann.index].start,
           annEnd: this.annotations[ann.index].end,
-        }
+        };
       }
     }
 
@@ -246,7 +254,7 @@ class TimeseriesWidget {
   }
 
   extractTags() {
-    for (const ann of this.model.get("annotations")) {
+    for (const ann of this.model.get('annotations')) {
       if (!this.tags.includes(ann.tag)) {
         this.tags.push(ann.tag);
       }
@@ -254,32 +262,32 @@ class TimeseriesWidget {
   }
 
   addLegend() {
-    const legend = this.el.querySelector("#legend")!;
+    const legend = this.el.querySelector('#legend')!;
 
-    for (const channel of this.model.get("channel_names")) {
+    for (const channel of this.model.get('channel_names')) {
       const channelIndex = this.model
-        .get("channel_names")
-        .findIndex((e) => e == channel);
-      const label = document.createElement("span");
+        .get('channel_names')
+        .findIndex(e => e == channel);
+      const label = document.createElement('span');
       label.innerHTML = channel;
-      label.style.setProperty("--line-color", this.getPlotColor(channelIndex));
+      label.style.setProperty('--line-color', this.getPlotColor(channelIndex));
       legend.append(label);
     }
   }
 
   addTitle() {
-    const title = this.el.querySelector("#title")!;
-    title.innerHTML = this.model.get("title");
+    const title = this.el.querySelector('#title')!;
+    title.innerHTML = this.model.get('title');
   }
 
   getPlotColor(channelIndex: number) {
     const colors = [
-      "#F44336",
-      "#4CAF50",
-      "#2196F3",
-      "#FFEB3B",
-      "#795548",
-      "#673AB7",
+      '#F44336',
+      '#4CAF50',
+      '#2196F3',
+      '#FFEB3B',
+      '#795548',
+      '#673AB7',
     ];
 
     const index = channelIndex % colors.length;
@@ -289,16 +297,16 @@ class TimeseriesWidget {
 
   getTagColor(tagIndex: number) {
     const colors = [
-      "#F44336",
-      "#3F51B5",
-      "#00BCD4",
-      "#9C27B0",
-      "#E91E63",
-      "#CDDC39",
-      "#795548",
-      "#FFEB3B",
-      "#607D8B",
-      "#2196F3",
+      '#F44336',
+      '#3F51B5',
+      '#00BCD4',
+      '#9C27B0',
+      '#E91E63',
+      '#CDDC39',
+      '#795548',
+      '#FFEB3B',
+      '#607D8B',
+      '#2196F3',
     ];
 
     const index = tagIndex % colors.length;
@@ -308,11 +316,11 @@ class TimeseriesWidget {
 
   step(timestamp: DOMHighResTimeStamp) {
     if (!this.lastAnimationFrameTimestamp) {
-      const canvasHolder = this.el.querySelector("#canvas-holder")!;
+      const canvasHolder = this.el.querySelector('#canvas-holder')!;
       this.canvas.width = canvasHolder.clientWidth;
       this.canvas.height = canvasHolder.clientHeight;
-      this.canvas.style.width = "100%";
-      this.canvas.style.height = "100%";
+      this.canvas.style.width = '100%';
+      this.canvas.style.height = '100%';
 
       this.lastAnimationFrameTimestamp = timestamp;
     }
@@ -320,7 +328,7 @@ class TimeseriesWidget {
     const delta = timestamp - this.lastAnimationFrameTimestamp;
     this.lastAnimationFrameTimestamp = timestamp;
 
-    if (this.model.get("is_running")) {
+    if (this.model.get('is_running')) {
       const duration = this.times[this.times.length - 1];
       this.currentTime = Math.min(this.currentTime + delta / 1000, duration);
     }
@@ -335,8 +343,8 @@ class TimeseriesWidget {
     const startTime = this.currentTime - this.window_size_in_s / 2;
     const endTime = this.currentTime + this.window_size_in_s / 2;
 
-    const startIndex = this.times.findIndex((e) => e >= startTime);
-    const endIndexPlus1 = this.times.findIndex((e) => e > endTime);
+    const startIndex = this.times.findIndex(e => e >= startTime);
+    const endIndexPlus1 = this.times.findIndex(e => e > endTime);
 
     const endIndex =
       endIndexPlus1 != -1
@@ -360,11 +368,33 @@ class TimeseriesWidget {
         startIndex,
         endIndex,
         leftOffsetPercentage,
-        rightOffsetPercentage,
-        -1,
-        1
+        rightOffsetPercentage
       );
     }
+  }
+
+  getRange(startIndex: number, endIndex: number) {
+    let min = this.yRange.min;
+    let max = this.yRange.max;
+
+    if (min != null && max != null) return { min, max };
+
+    const mins = [];
+    const maxs = [];
+
+    for (let c = 0; c < this.numChannels; c++) {
+      if (min == null) {
+        mins.push(Math.min(...this.values[c].slice(startIndex, endIndex + 1)));
+      }
+      if (max == null) {
+        maxs.push(Math.max(...this.values[c].slice(startIndex, endIndex + 1)));
+      }
+    }
+
+    return {
+      min: min ? min : Math.min(...mins),
+      max: max ? max : Math.max(...maxs),
+    };
   }
 
   drawPlot(
@@ -372,18 +402,16 @@ class TimeseriesWidget {
     startIndex: number,
     endIndex: number,
     leftOffsetPercentage: number,
-    rightOffsetPercentage: number,
-    min: number,
-    max: number
+    rightOffsetPercentage: number
   ) {
     if (isNaN(startIndex) || isNaN(endIndex)) return;
 
-    const ctx = this.canvas.getContext("2d");
+    const ctx = this.canvas.getContext('2d');
     const width = this.canvas.width;
     const height = this.canvas.height;
 
     if (!ctx) {
-      console.error("Failed to get 2D context");
+      console.error('Failed to get 2D context');
       return;
     }
 
@@ -398,6 +426,7 @@ class TimeseriesWidget {
     const endX = rightOffsetPercentage * fullWidthRange;
     const widthRange = endX - startX;
     const heightRange = height;
+    const { min, max } = this.getRange(startIndex, endIndex);
     const yRange = max - min;
 
     const values = this.values[channelIndex];
@@ -413,7 +442,11 @@ class TimeseriesWidget {
         ? Math.floor(indexRange / max_points_to_display)
         : 1;
 
-    for (let i = Math.max(0, startIndex - di); i < Math.min(values.length, endIndex + 2 * di); i += di) {
+    for (
+      let i = Math.max(0, startIndex - di);
+      i < Math.min(values.length, endIndex + 2 * di);
+      i += di
+    ) {
       const x = ((i - startIndex) / indexRange) * widthRange + startX;
       const y = height - (heightRange * (values[i] - min)) / yRange;
       ctx.lineTo(x, y);
@@ -422,7 +455,7 @@ class TimeseriesWidget {
     ctx.stroke();
   }
 
-  getAnnotationsToDraw(startTime: number, endTime: number) {    
+  getAnnotationsToDraw(startTime: number, endTime: number) {
     let annotationsToDraw = [];
 
     const width = this.canvas.width;
@@ -443,13 +476,13 @@ class TimeseriesWidget {
         (ann.end >= startTime && ann.end <= endTime) ||
         (ann.start <= startTime && ann.end >= endTime)
       ) {
-        const tagIndex = this.tags.findIndex((e) => e == ann.tag);
+        const tagIndex = this.tags.findIndex(e => e == ann.tag);
 
         const start =
-          (widthRange * (Math.max(ann["start"], startTime) - startTime)) /
+          (widthRange * (Math.max(ann['start'], startTime) - startTime)) /
           timeRange;
         const end =
-          (widthRange * (Math.min(ann["end"], endTime) - startTime)) /
+          (widthRange * (Math.min(ann['end'], endTime) - startTime)) /
           timeRange;
 
         annotationsToDraw.push({
@@ -466,10 +499,10 @@ class TimeseriesWidget {
   }
 
   drawAnnotations(startTime: number, endTime: number) {
-    const ctx = this.canvas.getContext("2d");
+    const ctx = this.canvas.getContext('2d');
 
     if (!ctx) {
-      console.error("Failed to get 2D context");
+      console.error('Failed to get 2D context');
       return;
     }
 
@@ -482,10 +515,10 @@ class TimeseriesWidget {
     for (let i = 0; i < annotationsToDraw.length; i++) {
       const ann = annotationsToDraw[i];
       let color = ann.color;
-      let transparency = "22";
+      let transparency = '22';
       if (this.selectedAnnIndex != null) {
-        color = ann.index == this.selectedAnnIndex ? ann.color : "#78909C";
-        transparency = ann.index == this.selectedAnnIndex ? "44" : "22";
+        color = ann.index == this.selectedAnnIndex ? ann.color : '#78909C';
+        transparency = ann.index == this.selectedAnnIndex ? '44' : '22';
       }
 
       ctx.fillStyle = color + transparency;
@@ -500,7 +533,7 @@ class TimeseriesWidget {
       );
 
       if (this.selectedAnnIndex == ann.index) {
-        ctx.lineCap = "round";
+        ctx.lineCap = 'round';
         ctx.strokeStyle = color;
         ctx.lineWidth = 4;
 
@@ -530,18 +563,18 @@ class TimeseriesWidget {
   }
 
   clearFrame() {
-    const ctx = this.canvas.getContext("2d");
+    const ctx = this.canvas.getContext('2d');
     const width = this.canvas.width;
     const height = this.canvas.height;
 
     if (!ctx) {
-      console.error("Failed to get 2D context");
+      console.error('Failed to get 2D context');
       return;
     }
 
     ctx.clearRect(0, 0, width, height);
 
-    ctx.strokeStyle = "#607d8b";
+    ctx.strokeStyle = '#607d8b';
 
     ctx.beginPath();
     ctx.moveTo(0, height / 2);
@@ -555,14 +588,14 @@ class TimeseriesWidget {
   }
 
   syncTimeChanged() {
-    this.currentTime = this.model.get("sync_time");
+    this.currentTime = this.model.get('sync_time');
   }
 
-  isRunningChanged() { }
+  isRunningChanged() {}
 
   render() {
-    this.model.on("change:sync_time", this.syncTimeChanged.bind(this));
-    this.model.on("change:is_running", this.isRunningChanged.bind(this));
+    this.model.on('change:sync_time', this.syncTimeChanged.bind(this));
+    this.model.on('change:is_running', this.isRunningChanged.bind(this));
 
     this.step = this.step.bind(this);
     this.animationFrameRequestId = requestAnimationFrame(this.step);
