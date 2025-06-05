@@ -14,6 +14,9 @@
 - [ ] Edit applied tags for annotations
 - [ ] Display x,y axes values
 - [ ] Min/Max current range finding optimization
+- [ ] Height offset with overlapping annotations
+- [ ] Colors for tags
+- [ ] Themeing
 - [ ] Add README
 - [ ] Add documentation
 - [ ] Publish on PyPI / Releases
