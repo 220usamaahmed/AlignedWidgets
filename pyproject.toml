@@ -10,7 +10,7 @@ authors = [
 ]
 description = "A set of Jupyter Notebook widgets which let you visualize synchronized multimodal data."
 dependencies = [
-    "anywidget",
+    "anywidget>=0.9.18",
     "flask>=3.1.1",
     "numpy>=2.2.6",
 ]
@@ -22,7 +22,7 @@ license-files = ["LICENSE"]
 # `pip install -e ".[dev]"`
 # If you're using `uv` for development, feel free to remove this section.
 [project.optional-dependencies]
-dev = ["watchfiles", "jupyterlab"]
+dev = ["watchfiles", "jupyterlab", "build", "twine"]
 
 # Dependency groups (recognized by `uv`). For more details, visit:
 # https://peps.python.org/pep-0735/
@@ -33,15 +33,12 @@ dev = [
     "aligned-widgets",
 ]
 
-
 [tool.hatch.build]
 only-packages = true
 artifacts = ["src/aligned_widgets/static/*"]
 
 [tool.hatch.build.hooks.jupyter-builder]
 build-function = "hatch_jupyter_builder.npm_builder"
-ensured-targets = ["src/aligned_widgets/static/widget.js"]
-skip-if-exists = ["src/aligned_widgets/static/widget.js"]
 dependencies = ["hatch-jupyter-builder>=0.5.0"]
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]

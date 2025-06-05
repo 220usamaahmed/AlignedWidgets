@@ -43,8 +43,10 @@ class VideoWidget {
   }
 
   seeked() {
-    this.model.set('sync_time', this.video.currentTime);
-    this.model.save_changes();
+    // TODO: seeking is being repeatedly called (investigate)
+    // console.log('seeked');
+    // this.model.set('sync_time', this.video.currentTime);
+    // this.model.save_changes();
   }
 
   syncTimeChanged() {

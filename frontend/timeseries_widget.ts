@@ -87,11 +87,11 @@ class TimeseriesWidget {
     this.btnDelete.innerHTML = this.model.get('icons').delete;
     this.btnDelete.addEventListener('click', this.btnDeleteClicked.bind(this));
 
-    this.btnZoomIn = el.querySelector('#btnZoomIn')!;
-    this.btnZoomIn.innerHTML = this.model.get('icons').zoom_in;
+    // this.btnZoomIn = el.querySelector('#btnZoomIn')!;
+    // this.btnZoomIn.innerHTML = this.model.get('icons').zoom_in;
 
-    this.btnZoomOut = el.querySelector('#btnZoomOut')!;
-    this.btnZoomOut.innerHTML = this.model.get('icons').zoom_out;
+    // this.btnZoomOut = el.querySelector('#btnZoomOut')!;
+    // this.btnZoomOut.innerHTML = this.model.get('icons').zoom_out;
 
     this.btnToggleTagsList = el.querySelector('#btnToggleTagsList')!;
     this.btnToggleTagsList.addEventListener(
