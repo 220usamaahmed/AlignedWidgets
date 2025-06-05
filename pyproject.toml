@@ -4,13 +4,19 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aligned_widgets"
-version = "0.0.0"
+version = "0.0.1"
+authors = [
+  { name="Usama Ahmed Siddiquie", email="220usamaahmed@gmail.com" },
+]
+description = "A set of Jupyter Notebook widgets which let you visualize synchronized multimodal data."
 dependencies = [
     "anywidget",
     "flask>=3.1.1",
     "numpy>=2.2.6",
 ]
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 
 # For projects not using `uv`, you can install these development dependencies with:
 # `pip install -e ".[dev]"`
@@ -23,8 +29,8 @@ dev = ["watchfiles", "jupyterlab"]
 [dependency-groups]
 dev = [
     "watchfiles",
- "jupyterlab",
- "aligned-widgets",
+    "jupyterlab",
+    "aligned-widgets",
 ]
 
 
