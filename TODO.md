@@ -10,13 +10,13 @@
 - [ ] Adjustment handles appear on partially visible annotations
 - [ ] Point annotations
 - [ ] Region annotations
-- [ ] Multiple tags for annotations
-- [ ] Edit applied tags for annotations
 - [ ] Display x,y axes values
 - [ ] Min/Max current range finding optimization
 - [ ] Height offset with overlapping annotations
 - [ ] Colors for tags
 - [ ] Themeing
+- [ ] Controls on video widget
+- [ ] Relative paths for video widget
 - [ ] Add README
 - [ ] Add documentation
 - [ ] Publish on PyPI / Releases

@@ -4,29 +4,34 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aligned_widgets"
-version = "0.0.0"
+version = "0.0.1"
+authors = [
+  { name="Usama Ahmed Siddiquie", email="220usamaahmed@gmail.com" },
+]
+description = "A set of Jupyter Notebook widgets which let you visualize synchronized multimodal data."
 dependencies = [
-    "anywidget",
+    "anywidget>=0.9.18",
     "flask>=3.1.1",
     "numpy>=2.2.6",
 ]
 readme = "README.md"
+license = "MIT"
+license-files = ["LICENSE"]
 
 # For projects not using `uv`, you can install these development dependencies with:
 # `pip install -e ".[dev]"`
 # If you're using `uv` for development, feel free to remove this section.
 [project.optional-dependencies]
-dev = ["watchfiles", "jupyterlab"]
+dev = ["watchfiles", "jupyterlab", "build", "twine"]
 
 # Dependency groups (recognized by `uv`). For more details, visit:
 # https://peps.python.org/pep-0735/
 [dependency-groups]
 dev = [
     "watchfiles",
- "jupyterlab",
- "aligned-widgets",
+    "jupyterlab",
+    "aligned-widgets",
 ]
-
 
 [tool.hatch.build]
 only-packages = true
@@ -34,8 +39,16 @@ artifacts = ["src/aligned_widgets/static/*"]
 
 [tool.hatch.build.hooks.jupyter-builder]
 build-function = "hatch_jupyter_builder.npm_builder"
-ensured-targets = ["src/aligned_widgets/static/widget.js"]
-skip-if-exists = ["src/aligned_widgets/static/widget.js"]
+ensured-targets = [
+    "src/aligned_widgets/static/timeseries_widget.js",
+    "src/aligned_widgets/static/control_widget.js",
+    "src/aligned_widgets/static/control_widget.js"
+]
+skip-if-exists = [
+    "src/aligned_widgets/static/timeseries_widget.js",
+    "src/aligned_widgets/static/control_widget.js",
+    "src/aligned_widgets/static/control_widget.js"
+]
 dependencies = ["hatch-jupyter-builder>=0.5.0"]
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]

@@ -1,14 +1,13 @@
 import pathlib
 
-import anywidget
 import traitlets
 
+from aligned_widgets.base import AlignedWidget
 
-class ControlWidget(anywidget.AnyWidget):
-    _root = pathlib.Path(__file__).parent / "static"
 
-    _esm = _root / "control_widget.js"
-    _css = _root / "control_widget.css"
+class ControlWidget(AlignedWidget):
+    _esm = AlignedWidget._root / "control_widget.js"
+    _css = AlignedWidget._root / "control_widget.css"
 
     duration = traitlets.Float(0.0).tag(sync=True)
     is_running = traitlets.Bool(False).tag(sync=True)
@@ -16,8 +15,8 @@ class ControlWidget(anywidget.AnyWidget):
 
     icons = traitlets.Dict(
         {
-            "play": (_root / "play.svg").read_text(),
-            "pause": (_root / "pause.svg").read_text(),
+            "play": (AlignedWidget._root / "play.svg").read_text(),
+            "pause": (AlignedWidget._root / "pause.svg").read_text(),
         }
     ).tag(sync=True)
 
