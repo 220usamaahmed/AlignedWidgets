@@ -1,16 +1,18 @@
 import importlib.metadata
-import pathlib
-
-import anywidget
-import traitlets
+from .control_widget import ControlWidget
+from .video_widget import VideoWidget
+from .timeseries_widget import TimeseriesWidget
+from .helpers import align, unalign
 
 try:
     __version__ = importlib.metadata.version("aligned_widgets")
 except importlib.metadata.PackageNotFoundError:
     __version__ = "unknown"
 
-
-class Widget(anywidget.AnyWidget):
-    _esm = pathlib.Path(__file__).parent / "static" / "widget.js"
-    _css = pathlib.Path(__file__).parent / "static" / "widget.css"
-    value = traitlets.Int(0).tag(sync=True)
+__all__ = [
+    "ControlWidget",
+    "VideoWidget",
+    "TimeseriesWidget",
+    "align",
+    "unalign",
+]

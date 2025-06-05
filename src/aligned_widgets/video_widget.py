@@ -1,16 +1,14 @@
 import pathlib
 
-import anywidget
 import traitlets
 
+from aligned_widgets.base import AlignedWidget
 from aligned_widgets.file_server import FileServer
 
 
-class VideoWidget(anywidget.AnyWidget):
-    _root = pathlib.Path(__file__).parent / "static"
-
-    _esm = _root / "video_widget.js"
-    _css = _root / "video_widget.css"
+class VideoWidget(AlignedWidget):
+    _esm = AlignedWidget._root / "video_widget.js"
+    _css = AlignedWidget._root / "video_widget.css"
 
     video_url = traitlets.Unicode().tag(sync=True)
     is_running = traitlets.Bool(False).tag(sync=True)

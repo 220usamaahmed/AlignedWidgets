@@ -2,9 +2,10 @@ import typing as _t
 
 import pathlib
 
-import anywidget
 import traitlets
 import numpy as np
+
+from aligned_widgets.base import AlignedWidget
 
 
 class Annotation(_t.TypedDict):
@@ -13,11 +14,9 @@ class Annotation(_t.TypedDict):
     tags: _t.List[str]
 
 
-class TimeseriesWidget(anywidget.AnyWidget):
-    _root = pathlib.Path(__file__).parent / "static"
-
-    _esm = _root / "timeseries_widget.js"
-    _css = _root / "timeseries_widget.css"
+class TimeseriesWidget(AlignedWidget):
+    _esm = AlignedWidget._root / "timeseries_widget.js"
+    _css = AlignedWidget._root / "timeseries_widget.css"
 
     title = traitlets.Unicode().tag(sync=True)
     times = traitlets.Bytes().tag(sync=True)
@@ -32,10 +31,10 @@ class TimeseriesWidget(anywidget.AnyWidget):
 
     icons = traitlets.Dict(
         {
-            "add": (_root / "add.svg").read_text(),
-            "delete": (_root / "delete.svg").read_text(),
-            "zoom_in": (_root / "zoom_in.svg").read_text(),
-            "zoom_out": (_root / "zoom_out.svg").read_text(),
+            "add": (AlignedWidget._root / "add.svg").read_text(),
+            "delete": (AlignedWidget._root / "delete.svg").read_text(),
+            "zoom_in": (AlignedWidget._root / "zoom_in.svg").read_text(),
+            "zoom_out": (AlignedWidget._root / "zoom_out.svg").read_text(),
         }
     ).tag(sync=True)
 
