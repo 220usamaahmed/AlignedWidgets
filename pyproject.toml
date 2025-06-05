@@ -39,6 +39,16 @@ artifacts = ["src/aligned_widgets/static/*"]
 
 [tool.hatch.build.hooks.jupyter-builder]
 build-function = "hatch_jupyter_builder.npm_builder"
+ensured-targets = [
+    "src/aligned_widgets/static/timeseries_widget.js",
+    "src/aligned_widgets/static/control_widget.js",
+    "src/aligned_widgets/static/control_widget.js"
+]
+skip-if-exists = [
+    "src/aligned_widgets/static/timeseries_widget.js",
+    "src/aligned_widgets/static/control_widget.js",
+    "src/aligned_widgets/static/control_widget.js"
+]
 dependencies = ["hatch-jupyter-builder>=0.5.0"]
 
 [tool.hatch.build.hooks.jupyter-builder.build-kwargs]
