@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "aligned_widgets"
-version = "0.0.1rc1"
+version = "0.0.1"
 authors = [
   { name="Usama Ahmed Siddiquie", email="220usamaahmed@gmail.com" },
 ]
