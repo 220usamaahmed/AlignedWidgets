@@ -24,6 +24,7 @@ interface TimerseriesWidgetModel {
   channel_names: string[];
   title: string;
   y_range: YRange;
+  x_range: number;
   icons: {
     add: string;
     delete: string;
@@ -128,6 +129,7 @@ class TimeseriesWidget {
 
     this.annotations = this.model.get('annotations');
     this.yRange = this.model.get('y_range');
+    this.window_size_in_s = this.model.get('x_range');
     this.tags = this.model.get('tags');
 
     this.populateTagsList();

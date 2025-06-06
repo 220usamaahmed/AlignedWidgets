@@ -24,6 +24,7 @@ class TimeseriesWidget(AlignedWidget):
     channel_names = traitlets.List().tag(sync=True)
     annotations = traitlets.List().tag(sync=True)
     tags = traitlets.List().tag(sync=True)
+    x_range = traitlets.Float().tag(sync=True)
     y_range = traitlets.Dict().tag(sync=True)
 
     is_running = traitlets.Bool(False).tag(sync=True)
@@ -47,6 +48,7 @@ class TimeseriesWidget(AlignedWidget):
         annotations: _t.List[Annotation] = [],
         channel_names: _t.List[str] = [],
         title: str = "",
+        x_range: float = 5.0,
         y_range: _t.Tuple = (None, None),
         **kwargs,
     ):
@@ -71,4 +73,5 @@ class TimeseriesWidget(AlignedWidget):
         self.annotations = annotations
         self.channel_names = channel_names
         self.title = title
+        self.x_range = x_range
         self.y_range = {"min": y_range[0], "max": y_range[1]}
