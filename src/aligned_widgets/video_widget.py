@@ -1,4 +1,5 @@
 import pathlib
+import os
 
 import traitlets
 
@@ -18,6 +19,10 @@ class VideoWidget(AlignedWidget):
         super().__init__(**kwargs)
 
         path = pathlib.Path(video_path)
+
+        if not path.is_absolute():
+            path = pathlib.Path(os.getcwd()) / path
+
         if not path.is_file():
             raise FileNotFoundError(f"Video file '{video_path}' does not exist.")
         if path.suffix.lower() != ".mp4":
