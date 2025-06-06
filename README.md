@@ -3,17 +3,22 @@
 A set of Jupyter Notebook widgets which let you visualize synchronized
 multimodal data.
 
+## Installation
+
+```bash
+pip install aligned-widgets
+```
+
 ## Usage
 
 To use inside of your notebook use the following code after installing
 
-```python
-  
-# Imports
+```python  
 from aligned_widgets import *
 import numpy as np
+````
 
-# Data
+```python
 T = 10
 
 times = np.arange(0, T, 0.01)
@@ -28,8 +33,9 @@ annotations = [
     {"start": 2.1, "end": 5, "tags": ["b"]},
     {"start": 6.5, "end": 7, "tags": ["b", "c"]},
 ]
+```
 
-# Create and display widgets
+```python
 v = VideoWidget("/Users/usama/Projects/AlignedWidgets/examples/dummy_video.mp4")
 ts = TimeseriesWidget(
     times, 
@@ -44,14 +50,17 @@ c = ControlWidget(T)
 
 a = align(c, v, ts)
 display(v, ts, c)
+```
 
+```python
 # View annotations
 print(ts.annotations)
+```
 
+```python
 # Unlink
 unalign(a)
-  
-```
+```  
 
 # Development
 
