@@ -1,6 +1,5 @@
 # TODOs
 
-- [ ] Window size configurable
 - [ ] Drag graphs
 - [ ] File server graceful shutdown
 - [ ] Layout utilities
