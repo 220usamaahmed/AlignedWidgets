@@ -87,11 +87,16 @@ class TimeseriesWidget {
     this.btnDelete.innerHTML = this.model.get('icons').delete;
     this.btnDelete.addEventListener('click', this.btnDeleteClicked.bind(this));
 
-    // this.btnZoomIn = el.querySelector('#btnZoomIn')!;
-    // this.btnZoomIn.innerHTML = this.model.get('icons').zoom_in;
+    this.btnZoomIn = el.querySelector('#btnZoomIn')!;
+    this.btnZoomIn.innerHTML = this.model.get('icons').zoom_in;
+    this.btnZoomIn.addEventListener('click', this.btnZoomInClicked.bind(this));
 
-    // this.btnZoomOut = el.querySelector('#btnZoomOut')!;
-    // this.btnZoomOut.innerHTML = this.model.get('icons').zoom_out;
+    this.btnZoomOut = el.querySelector('#btnZoomOut')!;
+    this.btnZoomOut.innerHTML = this.model.get('icons').zoom_out;
+    this.btnZoomOut.addEventListener(
+      'click',
+      this.btnZoomOutClicked.bind(this)
+    );
 
     this.btnToggleTagsList = el.querySelector('#btnToggleTagsList')!;
     this.btnToggleTagsList.addEventListener(
@@ -246,6 +251,14 @@ class TimeseriesWidget {
     this.selectedAnnIndex = null;
 
     this.syncAnnotations();
+  }
+
+  btnZoomInClicked() {
+    this.window_size_in_s -= 0.5;
+  }
+
+  btnZoomOutClicked() {
+    this.window_size_in_s += 0.5;
   }
 
   toggleTagsList() {

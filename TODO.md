@@ -1,6 +1,7 @@
 # TODOs
 
 - [ ] Zoom in/out of graphs
+- [ ] Window size configurable
 - [ ] Drag graphs
 - [ ] File server graceful shutdown
 - [ ] Layout utilities
@@ -17,6 +18,4 @@
 - [ ] Themeing
 - [ ] Controls on video widget
 - [ ] Relative paths for video widget
-- [ ] Add README
 - [ ] Add documentation
-- [ ] Publish on PyPI / Releases
