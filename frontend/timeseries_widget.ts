@@ -138,13 +138,16 @@ class TimeseriesWidget {
   }
 
   populateTagsList() {
-    for (const tag of this.tags) {
+    for (let i = 0; i < this.tags.length; i++) {
+      const tag = this.tags[i];
+
       const label = document.createElement('label');
       const inputCheckbox = document.createElement('input');
       const labelText = document.createTextNode(tag);
 
       inputCheckbox.type = 'checkbox';
       inputCheckbox.value = tag;
+      inputCheckbox.style.setProperty('--checkbox-color', this.getTagColor(i));
       inputCheckbox.addEventListener('change', this.tagToggled.bind(this));
 
       label.appendChild(inputCheckbox);
@@ -558,7 +561,7 @@ class TimeseriesWidget {
         annotationsToDraw.push({
           start: startX + start,
           width: end - start,
-          color: '#607D8B',
+          tagIndexes: ann.tags.map(t => this.tags.indexOf(t)),
           index: i,
         });
       }
@@ -576,34 +579,30 @@ class TimeseriesWidget {
     }
 
     const height = this.canvas.height;
-    const indicatorPadding = 1;
+    const indicatorPadding = 2;
     const indicatorHeight = 5;
 
     const annotationsToDraw = this.getAnnotationsToDraw(startTime, endTime);
 
     for (let i = 0; i < annotationsToDraw.length; i++) {
       const ann = annotationsToDraw[i];
-      let color = ann.color;
-      let transparency = '22';
-      if (this.selectedAnnIndex != null) {
-        color = ann.index == this.selectedAnnIndex ? ann.color : '#78909C';
-        transparency = ann.index == this.selectedAnnIndex ? '44' : '22';
-      }
 
-      ctx.fillStyle = color + transparency;
+      ctx.fillStyle = `#78909C${ann.index == this.selectedAnnIndex ? '44' : '22'}`;
       ctx.fillRect(ann.start, 0, ann.width, height);
 
-      ctx.fillStyle = color;
-      ctx.fillRect(
-        ann.start + indicatorPadding,
-        indicatorPadding,
-        ann.width - 2 * indicatorPadding,
-        indicatorHeight - indicatorPadding
-      );
+      for (let i = 0; i < ann.tagIndexes.length; i++) {
+        ctx.fillStyle = this.getTagColor(ann.tagIndexes[i]);
+        ctx.fillRect(
+          ann.start + indicatorPadding,
+          indicatorPadding + i * indicatorHeight,
+          ann.width - 2 * indicatorPadding,
+          indicatorHeight - indicatorPadding
+        );
+      }
 
       if (this.selectedAnnIndex == ann.index) {
         ctx.lineCap = 'round';
-        ctx.strokeStyle = color;
+        ctx.strokeStyle = '#78909C';
         ctx.lineWidth = 4;
 
         // Left handle
