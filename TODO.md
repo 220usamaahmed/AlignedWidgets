@@ -1,18 +1,18 @@
 # TODOs
 
-- [ ] Drag graphs
+- [ ] Add documentation
+- [ ] Jump to next/previous tag
+- [ ] Display x,y axes values
+- [ ] Controls on video widget
 - [ ] File server graceful shutdown
 - [ ] Layout utilities
+- [ ] Window resizing issue
 - [ ] Pre-configured widgets
 - [ ] Size of video in video-widget
-- [ ] Jump to next/previous tag
 - [ ] Adjustment handles appear on partially visible annotations
+- [ ] Drag graphs
+- [ ] Height offset with overlapping annotations
+- [ ] Themeing
+- [ ] Min/Max current range finding optimization
 - [ ] Point annotations
 - [ ] Region annotations
-- [ ] Display x,y axes values
-- [ ] Min/Max current range finding optimization
-- [ ] Height offset with overlapping annotations
-- [ ] Colors for tags
-- [ ] Themeing
-- [ ] Controls on video widget
-- [ ] Add documentation
