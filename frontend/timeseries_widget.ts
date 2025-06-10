@@ -258,11 +258,13 @@ class TimeseriesWidget {
   }
 
   btnZoomInClicked() {
-    this.windowSizeInSec -= 0.5;
+    this.windowSizeInSec = Math.max(0, this.windowSizeInSec - 0.5);
+    console.log('zoomIn', this.windowSizeInSec);
   }
 
   btnZoomOutClicked() {
     this.windowSizeInSec += 0.5;
+    console.log('zoomOut', this.windowSizeInSec);
   }
 
   toggleTagsList() {
@@ -671,12 +673,9 @@ class TimeseriesWidget {
     ctx.fillStyle = '#607d8b';
     ctx.font = '12px Arial';
 
-    for (
-      let i = -ticksToDrawHalf;
-      i < ticksToDrawHalf + 1;
-      i += this.windowSizeInSec / ticksToDraw
-    ) {
-      const tickTime = i + middleTickTime;
+    for (let i = -ticksToDrawHalf; i <= ticksToDrawHalf + 1; i += 1) {
+      const tickTime =
+        i * (this.windowSizeInSec / ticksToDraw) + middleTickTime;
       const x = (width * (tickTime - this.currentTime)) / this.windowSizeInSec;
 
       ctx.beginPath();
