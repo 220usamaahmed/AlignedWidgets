@@ -1,7 +1,0 @@
-2025-06-13 16:09:16,611 INFO Initializing FileServer.
-2025-06-13 16:09:16,615 INFO Starting server on port 59133
-2025-06-13 16:09:16,615 INFO Server thread started.
-2025-06-13 16:09:16,615 INFO Registered file: /Users/usama/Projects/AlignedWidgets/examples/dummy_video.mp4
-2025-06-13 16:09:16,642 INFO Serving file: /Users/usama/Projects/AlignedWidgets/examples/dummy_video.mp4
-2025-06-13 16:09:58,125 INFO Shutting down server.
-2025-06-13 16:09:58,228 INFO Server thread joined.
