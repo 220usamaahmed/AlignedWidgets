@@ -3,11 +3,10 @@ import typing as _t
 import pathlib
 from threading import Thread
 
-from flask import Flask, send_from_directory
+from flask import Flask, send_from_directory, jsonify
 
 
 class FileServer:
-
     _instance = None
     _initialized = False
 
@@ -24,11 +23,20 @@ class FileServer:
             self._start_server()
 
     def _start_server(self):
+        @self.app.route("/")
+        def index():
+            return "File server for Aligned Wigets"
+
+        @self.app.route("/debug")
+        def debug():
+            return jsonify({"current_files": [str(file) for file in self.files]})
+
         @self.app.route("/<int:file_index>")
         def serve_video(file_index: int):
             path = self.files[file_index]
             directory = path.parent
             filename = path.name
+
             return send_from_directory(directory, filename)
 
         def run():

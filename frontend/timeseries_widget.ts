@@ -57,7 +57,7 @@ class TimeseriesWidget {
   annotations: Annotation[] = [];
   tags: string[] = [];
 
-  window_size_in_s = 5;
+  windowSizeInSec = 5;
   selectedAnnIndex: number | null = null;
   selectedResizingHandle: {
     annIndex: number;
@@ -129,7 +129,7 @@ class TimeseriesWidget {
 
     this.annotations = this.model.get('annotations');
     this.yRange = this.model.get('y_range');
-    this.window_size_in_s = this.model.get('x_range');
+    this.windowSizeInSec = this.model.get('x_range');
     this.tags = this.model.get('tags');
 
     this.populateTagsList();
@@ -209,7 +209,7 @@ class TimeseriesWidget {
 
     const width = this.canvas.width;
     const time =
-      this.currentTime + (this.window_size_in_s * (mouseX - width / 2)) / width;
+      this.currentTime + (this.windowSizeInSec * (mouseX - width / 2)) / width;
 
     if (this.selectedResizingHandle.side == 'left') {
       this.annotations[this.selectedResizingHandle.annIndex].start = time;
@@ -223,8 +223,7 @@ class TimeseriesWidget {
 
     const width = this.canvas.width;
     const offsetTime =
-      (this.window_size_in_s * (mouseX - this.selectedMoveHandle.grabX)) /
-      width;
+      (this.windowSizeInSec * (mouseX - this.selectedMoveHandle.grabX)) / width;
     this.annotations[this.selectedMoveHandle.annIndex].start =
       this.selectedMoveHandle.annStart + offsetTime;
     this.annotations[this.selectedMoveHandle.annIndex].end =
@@ -259,11 +258,13 @@ class TimeseriesWidget {
   }
 
   btnZoomInClicked() {
-    this.window_size_in_s -= 0.5;
+    this.windowSizeInSec = Math.max(0, this.windowSizeInSec - 0.5);
+    console.log('zoomIn', this.windowSizeInSec);
   }
 
   btnZoomOutClicked() {
-    this.window_size_in_s += 0.5;
+    this.windowSizeInSec += 0.5;
+    console.log('zoomOut', this.windowSizeInSec);
   }
 
   toggleTagsList() {
@@ -277,8 +278,8 @@ class TimeseriesWidget {
   }
 
   checkForAnnSelection(mouseX: number) {
-    const startTime = this.currentTime - this.window_size_in_s / 2;
-    const endTime = this.currentTime + this.window_size_in_s / 2;
+    const startTime = this.currentTime - this.windowSizeInSec / 2;
+    const endTime = this.currentTime + this.windowSizeInSec / 2;
 
     const drawnAnns = this.getAnnotationsToDraw(startTime, endTime);
 
@@ -294,8 +295,8 @@ class TimeseriesWidget {
   }
 
   checkForHandleSelection(mouseX: number) {
-    const startTime = this.currentTime - this.window_size_in_s / 2;
-    const endTime = this.currentTime + this.window_size_in_s / 2;
+    const startTime = this.currentTime - this.windowSizeInSec / 2;
+    const endTime = this.currentTime + this.windowSizeInSec / 2;
 
     const drawnAnns = this.getAnnotationsToDraw(startTime, endTime);
 
@@ -415,8 +416,8 @@ class TimeseriesWidget {
   }
 
   draw() {
-    const startTime = this.currentTime - this.window_size_in_s / 2;
-    const endTime = this.currentTime + this.window_size_in_s / 2;
+    const startTime = this.currentTime - this.windowSizeInSec / 2;
+    const endTime = this.currentTime + this.windowSizeInSec / 2;
 
     const startIndex = this.times.findIndex(e => e >= startTime);
     const endIndexPlus1 = this.times.findIndex(e => e > endTime);
@@ -429,11 +430,11 @@ class TimeseriesWidget {
     const firstPointTimeDelta = this.times[startIndex] - this.currentTime;
     const lastPointTimeDelta = this.times[endIndex] - this.currentTime;
     const leftOffsetPercentage = Math.max(
-      firstPointTimeDelta / this.window_size_in_s + 0.5,
+      firstPointTimeDelta / this.windowSizeInSec + 0.5,
       0
     );
     const rightOffsetPercentage =
-      lastPointTimeDelta / this.window_size_in_s + 0.5;
+      lastPointTimeDelta / this.windowSizeInSec + 0.5;
 
     this.drawAnnotations(startTime, endTime);
 
@@ -642,6 +643,11 @@ class TimeseriesWidget {
 
     ctx.clearRect(0, 0, width, height);
 
+    this.drawAxis(ctx, width, height);
+    this.drawXLabels(ctx, width, height);
+  }
+
+  drawAxis(ctx: CanvasRenderingContext2D, width: number, height: number) {
     ctx.strokeStyle = '#607d8b';
 
     ctx.beginPath();
@@ -649,10 +655,40 @@ class TimeseriesWidget {
     ctx.lineTo(width, height / 2);
     ctx.stroke();
 
-    ctx.beginPath();
-    ctx.moveTo(width / 2, 0);
-    ctx.lineTo(width / 2, height);
-    ctx.stroke();
+    // ctx.beginPath();
+    // ctx.moveTo(width / 2, 0);
+    // ctx.lineTo(width / 2, height);
+    // ctx.stroke();
+  }
+
+  drawXLabels(ctx: CanvasRenderingContext2D, width: number, height: number) {
+    const ticksToDraw = 5;
+    const ticksToDrawHalf = Math.floor(ticksToDraw);
+
+    const middleTickTime =
+      (this.windowSizeInSec / ticksToDraw) *
+      Math.floor(this.currentTime / (this.windowSizeInSec / ticksToDraw));
+
+    ctx.strokeStyle = '#B0BEC5';
+    ctx.fillStyle = '#607d8b';
+    ctx.font = '12px Arial';
+
+    for (let i = -ticksToDrawHalf; i <= ticksToDrawHalf + 1; i += 1) {
+      const tickTime =
+        i * (this.windowSizeInSec / ticksToDraw) + middleTickTime;
+      const x = (width * (tickTime - this.currentTime)) / this.windowSizeInSec;
+
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, height);
+      ctx.stroke();
+
+      ctx.fillText(
+        (tickTime - this.windowSizeInSec / 2).toFixed(2),
+        x + 4,
+        height - 4
+      );
+    }
   }
 
   syncTimeChanged() {

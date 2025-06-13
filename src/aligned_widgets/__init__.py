@@ -16,7 +16,3 @@ __all__ = [
     "align",
     "unalign",
 ]
-
-import os
-
-print("FROM INIT", os.getcwd())
