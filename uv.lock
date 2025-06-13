@@ -10,6 +10,7 @@ dependencies = [
     { name = "anywidget" },
     { name = "flask" },
     { name = "numpy" },
+    { name = "werkzeug" },
 ]
 
 [package.optional-dependencies]
@@ -36,6 +37,7 @@ requires-dist = [
     { name = "numpy", specifier = ">=2.2.6" },
     { name = "twine", marker = "extra == 'dev'" },
     { name = "watchfiles", marker = "extra == 'dev'" },
+    { name = "werkzeug", specifier = ">=3.1.3" },
 ]
 provides-extras = ["dev"]
 
