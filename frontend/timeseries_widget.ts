@@ -588,7 +588,9 @@ class TimeseriesWidget {
     for (let i = 0; i < annotationsToDraw.length; i++) {
       const ann = annotationsToDraw[i];
 
-      ctx.fillStyle = `#78909C${ann.index == this.selectedAnnIndex ? '44' : '22'}`;
+      ctx.fillStyle = `#78909C${
+        ann.index == this.selectedAnnIndex ? '44' : '22'
+      }`;
       ctx.fillRect(ann.start, 0, ann.width, height);
 
       for (let i = 0; i < ann.tagIndexes.length; i++) {
@@ -655,10 +657,10 @@ class TimeseriesWidget {
     ctx.lineTo(width, height / 2);
     ctx.stroke();
 
-    // ctx.beginPath();
-    // ctx.moveTo(width / 2, 0);
-    // ctx.lineTo(width / 2, height);
-    // ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(width / 2, 0);
+    ctx.lineTo(width / 2, height);
+    ctx.stroke();
   }
 
   drawXLabels(ctx: CanvasRenderingContext2D, width: number, height: number) {
